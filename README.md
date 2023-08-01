@@ -19,9 +19,3 @@ Welcome to Harmony Share, the ultimate platform for music enthusiasts to come to
 ## Feedback and Support
 
 We'd love to hear your feedback and suggestions. If you encounter any issues or have questions, please open an issue on the GitHub repository.
-
-## License
-
-Harmony Share is open-source software licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-[Visit Harmony Share](https://link-to-app.com) and immerse yourself in a world of harmonious melodies, where music truly becomes a shared experience! 🎵🌟
