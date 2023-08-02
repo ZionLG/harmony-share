@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
 import { useRouter } from "next/router";
 import { ThemeToggle } from "./ThemeToggle";
 import { getInitials } from "~/utils/helperFunctions";
@@ -54,12 +53,10 @@ const AuthAvatar = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar>
-            <AvatarImage src={user.image ?? ""} />
-            <AvatarFallback>{getInitials(user.name ?? "")}</AvatarFallback>
-          </Avatar>
-        </Button>
+        <Avatar className=" relative h-16 w-16 cursor-pointer rounded-full text-2xl">
+          <AvatarImage src={user.image ?? ""} />
+          <AvatarFallback>{getInitials(user.name ?? "")}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mt-2 w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
