@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Head from "next/head";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
