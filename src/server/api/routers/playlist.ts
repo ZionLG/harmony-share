@@ -18,7 +18,39 @@ export const playlistRouter = createTRPCRouter({
       return newPlaylist;
     }),
 
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
+  getOwned: protectedProcedure.query(({ ctx }) => {
+    return ctx.prisma.playlist.findMany({
+      where: { ownerId: ctx.session.user.id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        privacy: true,
+        createdAt: true,
+        updatedAt: true,
+        collaborators: {
+          select: {
+            user: {
+              select: {
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }),
+
+  getCollaborated: protectedProcedure.query(({ ctx }) => {
+    return ctx.prisma.playlist.findMany({});
+  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input: { id }, ctx }) => {
+      const deletedPlaylist = await ctx.prisma.playlist.delete({
+        where: { id },
+      });
+
+      return deletedPlaylist;
+    }),
 });
