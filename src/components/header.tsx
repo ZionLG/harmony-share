@@ -13,7 +13,8 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { useRouter } from "next/router";
-import { ThemeToggle } from "./themeToggle";
+import { ThemeToggle } from "./ThemeToggle";
+import { getInitials } from "~/utils/helperFunctions";
 const Header = () => {
   const session = useSession();
 
@@ -49,14 +50,7 @@ const AuthAvatar = () => {
   if (session.status !== "authenticated") return null;
 
   const user = session.data.user;
-  const getInitials = (name: string) => {
-    const names = name.split(" ");
-    let initials = "";
-    names.forEach((n) => {
-      initials += n[0];
-    });
-    return initials;
-  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
