@@ -11,12 +11,6 @@ datasource db {
     relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -37,6 +31,14 @@ model Account {
     @@index([userId])
 }
 
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
+
 model Session {
     id           String   @id @default(cuid())
     sessionToken String   @unique
@@ -55,12 +57,48 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    // none of these fields are used by next-auth
+
+    bio          String?
+    Playlist     Playlist[]
+    Collaborator Collaborator[]
 }
 
-model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+model Playlist {
+    id          String  @id @default(cuid())
+    name        String
+    description String?
+    privacy     Privacy
 
-    @@unique([identifier, token])
+    owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    ownerId String
+
+    trackIds Json
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    collaborators Collaborator[]
+
+    @@index([ownerId])
+}
+
+model Collaborator {
+    id         String   @id @default(cuid())
+    playlistId String
+    userId     String
+    joinedAt   DateTime @default(now())
+
+    playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([playlistId, userId])
+    @@index([userId])
+}
+
+enum Privacy {
+    public
+    private
+    invite
 }
