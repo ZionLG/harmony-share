@@ -6,3 +6,16 @@ export const getInitials = (name: string) => {
   });
   return initials;
 };
+
+export const getLocalizedPrivacyName = (privacy: string) => {
+  switch (privacy) {
+    case "private":
+      return "Private";
+    case "public":
+      return "Public";
+    case "invite":
+      return "Invite Only";
+    default:
+      return "Unknown";
+  }
+};

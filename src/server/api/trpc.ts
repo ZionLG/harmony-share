@@ -11,7 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
 
@@ -128,3 +128,46 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+export const playlistReadProcedure = publicProcedure
+  .input(z.object({ playlistId: z.string() }))
+  .use(async ({ ctx, next, input }) => {
+    const playlistReq = ctx.prisma.playlist.findUnique({
+      where: { id: input.playlistId },
+      include: {
+        collaborators: {
+          select: {
+            id: true,
+            joinedAt: true,
+            user: { select: { image: true, name: true, id: true } },
+          },
+        },
+        owner: {
+          select: { image: true, name: true, id: true },
+        },
+      },
+    });
+    const playlist = await playlistReq;
+    if (playlist == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }
+    const isCollaborator = playlist.collaborators.some((collaborator) => {
+      return collaborator.user.id === ctx.session?.user?.id;
+    });
+
+    if (
+      playlist.readPrivacy === "public" ||
+      playlist.ownerId === ctx.session?.user?.id ||
+      (playlist.readPrivacy === "invite" && isCollaborator)
+    ) {
+      return next({ ctx: { playlist, playlistReq, isCollaborator } });
+    }
+
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this resource.",
+    });
+  });

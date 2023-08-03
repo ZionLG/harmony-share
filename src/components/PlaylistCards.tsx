@@ -10,7 +10,8 @@ type PlaylistCardsProps = {
     {
       name: string;
       description: string | null;
-      privacy: string;
+      readPrivacy: string;
+      writePrivacy: string;
       id: string;
       createdAt: Date;
       updatedAt: Date;
