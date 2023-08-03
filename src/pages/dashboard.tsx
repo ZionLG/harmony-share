@@ -1,14 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Head from "next/head";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 import PlaylistCreationDialog from "~/components/PlaylistCreationDialog";
 
 import PlaylistCards from "~/components/PlaylistCards";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 
 const Dashboard = () => {
   const getOwnedPlaylists = api.playlist.getOwned.useQuery();
+  const router = useRouter();
+  const session = useSession();
 
+  useEffect(() => {
+    if (session.status === "unauthenticated") void router.push("/");
+  }, [router, session]);
+
+  if (session.status !== "authenticated") return;
   return (
     <>
       <Head>

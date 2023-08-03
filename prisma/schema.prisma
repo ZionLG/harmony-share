@@ -66,10 +66,11 @@ model User {
 }
 
 model Playlist {
-    id          String  @id @default(cuid())
-    name        String
-    description String?
-    privacy     Privacy
+    id           String  @id @default(cuid())
+    name         String
+    description  String?
+    readPrivacy  Privacy
+    writePrivacy Privacy
 
     owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     ownerId String
