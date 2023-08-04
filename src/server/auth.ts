@@ -17,19 +17,29 @@ import { prisma } from "~/server/db";
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
+    error?: "RefreshAccessTokenError";
     user: DefaultSession["user"] & {
       id: string;
       // ...other properties
       // role: UserRole;
     };
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+}
+declare module "next-auth/jwt" {
+  interface JWT {
+    access_token: string;
+    expires_at: number;
+    refresh_token: string;
+    error?: "RefreshAccessTokenError";
+  }
 }
 
+interface TokenSet {
+  access_token: string;
+  expires_in: number;
+  scope: string;
+  token_type: string;
+}
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -37,13 +47,71 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: async ({ session, user }) => {
+      const [spotify] = await prisma.account.findMany({
+        where: {
+          userId: user.id,
+          provider: "spotify",
+        },
+      });
+      if (spotify) {
+        if (
+          spotify?.expires_at == null ||
+          spotify.expires_at * 1000 < Date.now()
+        ) {
+          // If the access token has expired, try to refresh it
+          try {
+            // https://accounts.google.com/.well-known/openid-configuration
+            // We need the `token_endpoint`.
+            const response = await fetch(
+              "https://accounts.spotify.com/api/token",
+              {
+                headers: {
+                  Authorization: `Basic ${Buffer.from(
+                    `${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`
+                  ).toString("base64")}`,
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                  grant_type: "refresh_token",
+                  refresh_token: spotify.refresh_token!,
+                }),
+                method: "POST",
+              }
+            );
+
+            const tokens: TokenSet = (await response.json()) as TokenSet;
+
+            if (!response.ok) throw tokens;
+
+            await prisma.account.update({
+              data: {
+                access_token: tokens.access_token,
+                expires_at: Math.floor(Date.now() / 1000 + tokens.expires_in),
+              },
+              where: {
+                provider_providerAccountId: {
+                  provider: "spotify",
+                  providerAccountId: spotify.providerAccountId,
+                },
+              },
+            });
+          } catch (error) {
+            console.error("Error refreshing access token", error);
+            // The error property will be used client-side to handle the refresh token error
+            session.error = "RefreshAccessTokenError";
+          }
+        }
+      }
+      return {
+        ...session,
+        user: {
+          ...session.user,
+
+          id: user.id,
+        },
+      };
+    },
   },
   adapter: PrismaAdapter(prisma),
   providers: [

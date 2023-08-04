@@ -129,6 +129,32 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
+const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
+  async ({ ctx, next }) => {
+    const token = await ctx.prisma.account.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { access_token: true },
+    });
+    if (token == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "The server cannot find the user token, please try to sign in again.",
+      });
+    }
+    return next({
+      ctx: {
+        session: {
+          ...ctx.session,
+          user: ctx.session.user,
+        },
+        token: token.access_token,
+      },
+    });
+  }
+);
+export const spotifyProcedure = t.procedure.use(addTokenToContext);
+
 export const playlistReadProcedure = publicProcedure
   .input(z.object({ playlistId: z.string() }))
   .use(async ({ ctx, next, input }) => {

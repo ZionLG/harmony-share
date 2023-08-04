@@ -2,12 +2,17 @@ import React, { useEffect } from "react";
 import Head from "next/head";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
-import PlaylistCreationDialog from "~/components/PlaylistCreationDialog";
+import dynamic from "next/dynamic";
 
 import PlaylistCards from "~/components/PlaylistCards";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-
+const DynamicPlaylistCreator = dynamic(
+  () => import("~/components/PlaylistCreationDialog"),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+);
 const Dashboard = () => {
   const getOwnedPlaylists = api.playlist.getOwned.useQuery();
   const router = useRouter();
@@ -31,7 +36,7 @@ const Dashboard = () => {
             <span className="text-3xl font-semibold text-primary">
               Dashboard
             </span>
-            <PlaylistCreationDialog />
+            <DynamicPlaylistCreator />
           </div>
           <Separator className="my-4 h-1" />
         </div>

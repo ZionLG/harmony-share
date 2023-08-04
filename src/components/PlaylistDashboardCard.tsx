@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Avatar } from "@radix-ui/react-avatar";
-import { AvatarFallback } from "~/components/ui/avatar";
+import { AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { api } from "~/utils/api";
 import { type UseTRPCQueryResult } from "@trpc/react-query/shared";
 import { useRouter } from "next/router";
@@ -21,6 +21,7 @@ type PlaylistCardProps = {
   query: UseTRPCQueryResult<unknown, unknown>;
   playlist: {
     name: string;
+    image: string | null;
     description: string | null;
     readPrivacy: string;
     writePrivacy: string;
@@ -49,28 +50,32 @@ const PlaylistCard = ({
   return (
     <Card
       key={playlist.id}
-      style={{ width: `${width ? `${width}px` : "fit-content"}` }}
+      style={{
+        width: `${width ? `${width}px` : "fit-content"}`,
+      }}
       className={`${
         cardGroup ? `playlist-card-${cardGroup}` : ""
-      } flex min-w-fit flex-col justify-between`}
+      } flex min-w-fit  flex-col justify-between `}
     >
       <CardHeader>
         <CardTitle>
           <div className="flex items-center gap-4">
             <Avatar className="relative h-16 w-16 rounded-full ">
-              <AvatarFallback>{getInitials(playlist.name)}</AvatarFallback>
+              <AvatarImage src={playlist.image ?? ""} />
+              <AvatarFallback className="rounded-md">
+                {getInitials(playlist.name)}
+              </AvatarFallback>
             </Avatar>
-            <Link href={`/playlist/${playlist.id}`}>
-              {playlist.name} - {getLocalizedPrivacyName(playlist.readPrivacy)}{" "}
-              (Write: {getLocalizedPrivacyName(playlist.writePrivacy)})
-            </Link>
+            <Link href={`/playlist/${playlist.id}`}>{playlist.name}</Link>
           </div>
         </CardTitle>
         <CardDescription>
-          Last Updated - {playlist.updatedAt.toLocaleString()}
+          Last Updated - {playlist.updatedAt.toLocaleString()} -{" "}
+          {getLocalizedPrivacyName(playlist.readPrivacy)} (Write:{" "}
+          {getLocalizedPrivacyName(playlist.writePrivacy)})
         </CardDescription>
       </CardHeader>
-      <CardContent>{playlist.description}</CardContent>
+      <CardContent className="max-w-md">{playlist.description}</CardContent>
       <CardFooter className="flex justify-between">
         <Button
           variant={"destructive"}
