@@ -10,7 +10,13 @@ const bundleAnalyzer = withBundleAnalyzer({
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
-
+  images: {
+    remotePatterns: [
+      {
+        hostname: "via.placeholder.com",
+      },
+    ]
+  },
   /**
    * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
    * out.
