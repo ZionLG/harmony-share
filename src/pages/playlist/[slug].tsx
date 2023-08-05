@@ -2,18 +2,20 @@ import { Separator } from "~/components/ui/separator";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
-import { getInitials, getLocalizedPrivacyName } from "~/utils/helperFunctions";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
-import { Dot } from "lucide-react";
+import PlaylistHeader from "~/components/PlaylistHeader";
 
 export default function PlaylistPage() {
   const router = useRouter();
-  const getPlaylist = api.playlist.getPlaylist.useQuery({
-    playlistId: router.query.slug as string,
-  });
+  const getPlaylist = api.playlist.getPlaylist.useQuery(
+    {
+      playlistId: router.query.slug as string,
+    },
+    { enabled: router.query.slug != null }
+  );
   const session = useSession();
 
   useEffect(() => {
@@ -24,36 +26,16 @@ export default function PlaylistPage() {
     return <p>Loading...</p>;
   return (
     <main className="gap flex min-h-screen flex-col p-5">
-      <div className="mb-3 flex items-center justify-center gap-5">
-        <Avatar className="relative h-32 w-32 text-4xl ">
-          <AvatarFallback>
-            {getInitials(getPlaylist.data.playlist.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center">
-            <span className="text-sm  text-primary">
-              {getLocalizedPrivacyName(
-                getPlaylist.data.playlist.readPrivacy as string
-              )}{" "}
-              Playlist
-            </span>
-            <Dot />
-            <Avatar className="relative h-8 w-8 text-xs ">
-              <AvatarImage src={getPlaylist.data.playlist.owner.image ?? ""} />
-              <AvatarFallback>
-                {getInitials(getPlaylist.data.playlist.owner.name ?? "")}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-          <span className="text-6xl font-semibold text-primary">
-            {getPlaylist.data.playlist.name}
-          </span>
-          <span className="text-md text-gray-400 text-primary">
-            {getPlaylist.data.playlist.description}
-          </span>
-        </div>
-      </div>
+      <PlaylistHeader
+        description={getPlaylist.data.playlist.description ?? ""}
+        name={getPlaylist.data.playlist.name}
+        readPrivacy={getPlaylist.data.playlist.readPrivacy}
+        image={getPlaylist.data.playlist.image ?? ""}
+        owner={{
+          image: getPlaylist.data.playlist.owner.image ?? "",
+          name: getPlaylist.data.playlist.owner.name ?? "",
+        }}
+      />
       <div className="flex gap-5">
         {(getPlaylist.data.isCollaborator ||
           getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (

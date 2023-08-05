@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   createTRPCRouter,
@@ -43,6 +42,7 @@ export const playlistRouter = createTRPCRouter({
       select: {
         id: true,
         name: true,
+        image: true,
         description: true,
         readPrivacy: true,
         writePrivacy: true,
@@ -79,5 +79,35 @@ export const playlistRouter = createTRPCRouter({
       playlist: ctx.playlist,
       isCollaborator: ctx.isCollaborator,
     };
+  }),
+
+  getPublicPlaylists: publicProcedure.query(async ({ ctx }) => {
+    const playlists = await ctx.prisma.playlist.findMany({
+      where: { readPrivacy: "public" },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        description: true,
+        updatedAt: true,
+        writePrivacy: true,
+        owner: {
+          select: {
+            image: true,
+            name: true,
+          },
+        },
+        collaborators: {
+          select: {
+            user: {
+              select: {
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return playlists;
   }),
 });

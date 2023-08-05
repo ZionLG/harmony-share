@@ -1,5 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { playlistRouter } from "~/server/api/routers/playlist";
+import { spotifyRouter } from "~/server/api/routers/spotify";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { playlistRouter } from "~/server/api/routers/playlist";
  */
 export const appRouter = createTRPCRouter({
   playlist: playlistRouter,
+  spotify: spotifyRouter,
 });
 
 // export type definition of API

@@ -7,11 +7,13 @@
  * need to use are documented accordingly near the end.
  */
 
+import { type AccessToken, SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
 import { z, ZodError } from "zod";
+import { env } from "~/env.mjs";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
 
@@ -128,6 +130,44 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
+  async ({ ctx, next }) => {
+    const token = await ctx.prisma.account.findFirst({
+      where: { userId: ctx.session.user.id },
+      select: {
+        access_token: true,
+        expires_at: true,
+        refresh_token: true,
+        token_type: true,
+      },
+    });
+    if (token == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "The server cannot find the user token, please try to sign in again.",
+      });
+    }
+    const tokenSet = {
+      access_token: token.access_token,
+      expires_in: token.expires_at,
+      refresh_token: token.refresh_token,
+      token_type: token.token_type,
+    } as AccessToken;
+    const sdk = SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID, tokenSet);
+    return next({
+      ctx: {
+        session: {
+          ...ctx.session,
+          user: ctx.session.user,
+        },
+        spotifySdk: sdk,
+      },
+    });
+  }
+);
+export const spotifyProcedure = t.procedure.use(addTokenToContext);
 
 export const playlistReadProcedure = publicProcedure
   .input(z.object({ playlistId: z.string() }))
