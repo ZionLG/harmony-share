@@ -4,7 +4,6 @@ import {
   protectedProcedure,
   publicProcedure,
   playlistReadProcedure,
-  spotifyProcedure,
 } from "~/server/api/trpc";
 
 export const playlistRouter = createTRPCRouter({
@@ -81,15 +80,7 @@ export const playlistRouter = createTRPCRouter({
       isCollaborator: ctx.isCollaborator,
     };
   }),
-  getMe: spotifyProcedure.query(async ({ ctx }) => {
-    const result = await fetch("https://api.spotify.com/v1/me", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${ctx.token}` },
-    });
-    console.log("user token get me", ctx.token);
-    console.log(await result.json());
-    return result;
-  }),
+
   getPublicPlaylists: publicProcedure.query(async ({ ctx }) => {
     const playlists = await ctx.prisma.playlist.findMany({
       where: { readPrivacy: "public" },

@@ -1,11 +1,10 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import PlaylistHeader from "~/components/PlaylistHeader";
 import ProductSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
-
 export default function PlaylistEditPage() {
   const router = useRouter();
   const session = useSession();
@@ -49,7 +48,7 @@ export default function PlaylistEditPage() {
         }}
       />
       <Separator className="my-5" />
-      <div className="self-center">
+      <div className=" flex">
         <ProductSearch />
       </div>
     </main>

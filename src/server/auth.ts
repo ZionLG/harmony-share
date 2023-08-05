@@ -40,6 +40,14 @@ interface TokenSet {
   scope: string;
   token_type: string;
 }
+
+// interface TokenData {
+//   access_token: string;
+//   expires_in: number;
+//   scope: string;
+//   refresh_token: string;
+//   token_type: string;
+// }
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
