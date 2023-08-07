@@ -1,5 +1,4 @@
 import { Pause, Play } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 import type { useAudioReturnType } from "~/utils/useAudio";
 import { type Track } from "~/utils/spotifyTypes";
@@ -57,17 +56,22 @@ const SpotifyTrack = ({
             />
           )}
           <div className="flex shrink flex-col gap-1">
-            <Link href={track.spotifyLink} className="  hover:underline ">
+            <a
+              target="_blank"
+              href={track.spotifyLink}
+              className="  hover:underline "
+            >
               {track.name}
-            </Link>
+            </a>
             {track.artists.map((artist) => (
-              <Link
+              <a
+                target="_blank"
                 key={artist.id}
                 href={artist.spotifyLink}
                 className="text-xs  hover:underline"
               >
                 {artist.name}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -76,7 +80,7 @@ const SpotifyTrack = ({
           audioState.urlState === track.previewUrl ? (
             <Pause
               size={24}
-              className="fill-primary-foreground"
+              className="cursor-pointer  fill-primary-foreground"
               onClick={() => {
                 audioState.pause();
               }}
@@ -84,7 +88,7 @@ const SpotifyTrack = ({
           ) : (
             <Play
               size={24}
-              className="fill-primary-foreground"
+              className="cursor-pointer fill-primary-foreground"
               onClick={() => {
                 if (audioState.status !== "playing" && track.previewUrl) {
                   audioState.setUrlState(track.previewUrl);

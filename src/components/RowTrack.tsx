@@ -2,25 +2,37 @@ import React from "react";
 import { Track } from "@prisma/client";
 import { api } from "~/utils/api";
 import Image from "next/image";
-import Link from "next/link";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { millisToMinutesAndSeconds } from "~/utils/helperFunctions";
 import type { useAudioReturnType } from "~/utils/useAudio";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, X } from "lucide-react";
 
 type TrackProps = {
   track: Track;
   index: number;
   audioState: useAudioReturnType;
+  playlistId: string;
+  isEditTrack?: boolean;
 };
-const Track = ({ track, index, audioState }: TrackProps) => {
+const Track = ({
+  track,
+  index,
+  audioState,
+  playlistId,
+  isEditTrack = false,
+}: TrackProps) => {
   const getTrack = api.spotify.getSongById.useQuery({
     songId: track.spotifyId,
   });
+  const utils = api.useContext();
 
+  const { mutate: deleteMutate, isLoading: deleteIsLoading } =
+    api.playlist.deleteSong.useMutation({
+      onSuccess: () => utils.playlist.getPlaylist.invalidate(),
+    });
   if (!getTrack.data) return null;
   return (
-    <TableRow className=" items-center gap-3 p-3">
+    <TableRow className=" group items-center gap-3 p-3">
       <TableCell>{index}</TableCell>
       <TableCell className="flex items-center gap-3">
         {getTrack.data.albumCover && (
@@ -33,17 +45,22 @@ const Track = ({ track, index, audioState }: TrackProps) => {
           />
         )}
         <div className="flex flex-col gap-1">
-          <Link href={getTrack.data.spotifyLink} className="  hover:underline ">
+          <a
+            target="_blank"
+            href={getTrack.data.spotifyLink}
+            className="  hover:underline "
+          >
             {getTrack.data.name}
-          </Link>
+          </a>
           {getTrack.data.artists.map((artist) => (
-            <Link
+            <a
+              target="_blank"
               key={artist.id}
               href={artist.spotifyLink}
               className="text-xs  hover:underline"
             >
               {artist.name}
-            </Link>
+            </a>
           ))}
         </div>
       </TableCell>
@@ -56,7 +73,7 @@ const Track = ({ track, index, audioState }: TrackProps) => {
           audioState.urlState === getTrack.data.previewUrl ? (
             <Pause
               size={24}
-              className="fill-primary-foreground"
+              className="cursor-pointer fill-primary-foreground"
               onClick={() => {
                 audioState.pause();
               }}
@@ -64,7 +81,7 @@ const Track = ({ track, index, audioState }: TrackProps) => {
           ) : (
             <Play
               size={24}
-              className="fill-primary-foreground"
+              className="cursor-pointer fill-primary-foreground"
               onClick={() => {
                 if (
                   audioState.status !== "playing" &&
@@ -79,6 +96,18 @@ const Track = ({ track, index, audioState }: TrackProps) => {
             />
           ))}
       </TableCell>
+      {isEditTrack && (
+        <TableCell>
+          <X
+            className="text-background hover:cursor-pointer group-hover:text-primary"
+            onClick={() => {
+              if (!deleteIsLoading) {
+                deleteMutate({ playlistId, trackId: track.id });
+              }
+            }}
+          />
+        </TableCell>
+      )}
     </TableRow>
   );
 };

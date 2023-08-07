@@ -118,6 +118,20 @@ export const playlistRouter = createTRPCRouter({
         message: "The server cannot find the requested resource.",
       });
     }),
+
+  deleteSong: playlistEditProcedure
+    .input(z.object({ trackId: z.string() }))
+    .mutation(async ({ input: { trackId }, ctx }) => {
+      const playlistTrack = await ctx.prisma.track.delete({
+        where: { id: trackId },
+      });
+
+      return playlistTrack;
+    }),
+  getTest: protectedProcedure.query(({ ctx }) => {
+    return ctx.session.user.id;
+  }),
+
   getPlaylist: playlistReadProcedure.query(({ ctx }) => {
     return {
       playlist: ctx.playlist,

@@ -77,6 +77,7 @@ export default function PlaylistEditPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Preview</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
 
@@ -84,6 +85,8 @@ export default function PlaylistEditPage() {
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
                 return (
                   <Track
+                    isEditTrack={true}
+                    playlistId={router.query.slug as string}
                     audioState={audioState}
                     key={track.id}
                     track={track}
