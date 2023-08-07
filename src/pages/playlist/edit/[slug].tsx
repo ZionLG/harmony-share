@@ -1,10 +1,19 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import PlaylistHeader from "~/components/PlaylistHeader";
+import Track from "~/components/RowTrack";
 import ProductSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+
 export default function PlaylistEditPage() {
   const router = useRouter();
   const session = useSession();
@@ -48,8 +57,25 @@ export default function PlaylistEditPage() {
         }}
       />
       <Separator className="my-5" />
-      <div className=" flex">
-        <ProductSearch />
+      <div className=" container flex justify-around ">
+        <ProductSearch playlistId={router.query.slug as string} />
+        <div className="p-5">
+          <Table className=" text-lg">
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Duration</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {getPlaylist.data?.playlist.tracks.map((track, i) => {
+                return <Track key={track.id} track={track} index={i} />;
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </main>
   );

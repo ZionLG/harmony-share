@@ -76,7 +76,7 @@ model Playlist {
     owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     ownerId String
 
-    trackIds Json
+    tracks Track[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -84,6 +84,17 @@ model Playlist {
     collaborators Collaborator[]
 
     @@index([ownerId])
+}
+
+model Track {
+    id         String   @id @default(cuid())
+    spotifyId  String
+    playlistId String
+    AddedAt    DateTime @default(now())
+
+    playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+    @@index([playlistId])
 }
 
 model Collaborator {

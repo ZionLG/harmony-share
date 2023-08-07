@@ -5,7 +5,8 @@ export type Track = {
   artists: Artist[];
   duration_ms: number;
   explicit: boolean;
-  previewUrl: string;
+  previewUrl: string | null;
+  albumCover: string | null;
 };
 
 export type Artist = {

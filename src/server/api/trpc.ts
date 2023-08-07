@@ -175,6 +175,7 @@ export const playlistReadProcedure = publicProcedure
     const playlistReq = ctx.prisma.playlist.findUnique({
       where: { id: input.playlistId },
       include: {
+        tracks: true,
         collaborators: {
           select: {
             id: true,
@@ -202,6 +203,49 @@ export const playlistReadProcedure = publicProcedure
       playlist.readPrivacy === "public" ||
       playlist.ownerId === ctx.session?.user?.id ||
       (playlist.readPrivacy === "invite" && isCollaborator)
+    ) {
+      return next({ ctx: { playlist, playlistReq, isCollaborator } });
+    }
+
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this resource.",
+    });
+  });
+
+export const playlistEditProcedure = publicProcedure
+  .input(z.object({ playlistId: z.string() }))
+  .use(async ({ ctx, next, input }) => {
+    const playlistReq = ctx.prisma.playlist.findUnique({
+      where: { id: input.playlistId },
+      include: {
+        collaborators: {
+          select: {
+            id: true,
+            joinedAt: true,
+            user: { select: { image: true, name: true, id: true } },
+          },
+        },
+        owner: {
+          select: { image: true, name: true, id: true },
+        },
+      },
+    });
+    const playlist = await playlistReq;
+    if (playlist == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }
+    const isCollaborator = playlist.collaborators.some((collaborator) => {
+      return collaborator.user.id === ctx.session?.user?.id;
+    });
+
+    if (
+      playlist.writePrivacy === "public" ||
+      playlist.ownerId === ctx.session?.user?.id ||
+      (playlist.writePrivacy === "invite" && isCollaborator)
     ) {
       return next({ ctx: { playlist, playlistReq, isCollaborator } });
     }
