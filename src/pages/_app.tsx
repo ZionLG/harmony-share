@@ -3,8 +3,8 @@ import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import "~/styles/globals.css";
-import Header from "~/components/Header";
 import { ThemeProvider } from "next-themes";
+import Layout from "~/components/layout";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -13,8 +13,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Header />
-        <Component {...pageProps} />
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
       </ThemeProvider>
     </SessionProvider>
   );
