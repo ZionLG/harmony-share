@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import PlaylistHeader from "~/components/PlaylistHeader";
 import Track from "~/components/RowTrack";
-import ProductSearch from "~/components/TrackSearch";
+import TrackSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 import {
@@ -58,7 +58,7 @@ export default function PlaylistEditPage() {
       />
       <Separator className="my-5" />
       <div className=" container flex justify-around ">
-        <ProductSearch playlistId={router.query.slug as string} />
+        <TrackSearch playlistId={router.query.slug as string} />
         <div className="p-5">
           <Table className=" text-lg">
             <TableHeader>
