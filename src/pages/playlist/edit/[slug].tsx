@@ -13,8 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import useAudio from "~/utils/useAudio";
 
 export default function PlaylistEditPage() {
+  const audioState = useAudio({
+    url: "",
+    playOnLoad: true,
+  });
   const router = useRouter();
   const session = useSession();
 
@@ -60,7 +65,10 @@ export default function PlaylistEditPage() {
       />
       <Separator className="my-5" />
       <div className=" container flex justify-around ">
-        <TrackSearch playlistId={router.query.slug as string} />
+        <TrackSearch
+          playlistId={router.query.slug as string}
+          audioState={audioState}
+        />
         <div className="p-5">
           <Table className=" text-lg">
             <TableHeader>
@@ -68,12 +76,20 @@ export default function PlaylistEditPage() {
                 <TableHead>#</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Preview</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
-                return <Track key={track.id} track={track} index={i + 1} />;
+                return (
+                  <Track
+                    audioState={audioState}
+                    key={track.id}
+                    track={track}
+                    index={i + 1}
+                  />
+                );
               })}
             </TableBody>
           </Table>

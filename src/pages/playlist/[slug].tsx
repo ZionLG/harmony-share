@@ -15,7 +15,12 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import Track from "~/components/RowTrack";
+import useAudio from "~/utils/useAudio";
 export default function PlaylistPage() {
+  const audioState = useAudio({
+    url: "",
+    playOnLoad: true,
+  });
   const router = useRouter();
   const getPlaylist = api.playlist.getPlaylist.useQuery(
     {
@@ -75,12 +80,20 @@ export default function PlaylistPage() {
                 <TableHead>#</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Preview</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
-                return <Track key={track.id} track={track} index={i} />;
+                return (
+                  <Track
+                    audioState={audioState}
+                    key={track.id}
+                    track={track}
+                    index={i}
+                  />
+                );
               })}
             </TableBody>
           </Table>

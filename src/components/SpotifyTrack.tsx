@@ -1,7 +1,7 @@
 import { Pause, Play } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { useAudioWizard } from "react-audio-wizard";
+import type { useAudioReturnType } from "~/utils/useAudio";
 import { type Track } from "~/utils/spotifyTypes";
 import { api } from "~/utils/api";
 import { millisToMinutesAndSeconds } from "~/utils/helperFunctions";
@@ -10,19 +10,14 @@ type SpotifyTrackProps = {
   track: Track;
   playlistId: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  isPlayingPreview: boolean;
-  setIsPlayingPreview: React.Dispatch<React.SetStateAction<boolean>>;
+  audioState: useAudioReturnType;
 };
 const SpotifyTrack = ({
   track,
   playlistId,
-  isPlayingPreview,
-  setIsPlayingPreview,
+  audioState,
   setSearchTerm,
 }: SpotifyTrackProps) => {
-  const { status, play, pause, handleSeek } = useAudioWizard({
-    url: track.previewUrl ?? "",
-  });
   const utils = api.useContext();
 
   const { mutate, isLoading } = api.playlist.addTrack.useMutation({
@@ -34,7 +29,7 @@ const SpotifyTrack = ({
   const handleOnSelect = (trackId: string) => {
     if (isLoading) return;
     try {
-      pause();
+      audioState.pause();
       setSearchTerm("");
       mutate({ trackId, playlistId });
     } catch (error) {
@@ -77,14 +72,13 @@ const SpotifyTrack = ({
           </div>
         </div>
         {track.previewUrl != null &&
-          (status === "playing" ? (
+          (audioState.status === "playing" &&
+          audioState.urlState === track.previewUrl ? (
             <Pause
               size={24}
               className="fill-primary-foreground"
               onClick={() => {
-                pause();
-                setIsPlayingPreview(false);
-                handleSeek({ seekTime: 0 });
+                audioState.pause();
               }}
             />
           ) : (
@@ -92,9 +86,11 @@ const SpotifyTrack = ({
               size={24}
               className="fill-primary-foreground"
               onClick={() => {
-                if (!isPlayingPreview) {
-                  play();
-                  setIsPlayingPreview(true);
+                if (audioState.status !== "playing" && track.previewUrl) {
+                  audioState.setUrlState(track.previewUrl);
+                } else if (track.previewUrl) {
+                  audioState.pause();
+                  audioState.setUrlState(track.previewUrl);
                 }
               }}
             />
