@@ -3,14 +3,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { v4 as uuidv4 } from "uuid";
 import { type UseTRPCQueryResult } from "@trpc/react-query/shared";
-import PlaylistCard from "./PlaylistCard";
+import PlaylistCard from "./PlaylistDashboardCard";
 
 type PlaylistCardsProps = {
   query: UseTRPCQueryResult<
     {
       name: string;
+      image: string | null;
       description: string | null;
-      privacy: string;
+      readPrivacy: string;
+      writePrivacy: string;
       id: string;
       createdAt: Date;
       updatedAt: Date;
@@ -51,7 +53,7 @@ const PlaylistCards = ({ query }: PlaylistCardsProps) => {
 
   return (
     <ScrollArea className="p-6">
-      <div className="flex gap-5 ">
+      <div className="flex h-auto gap-5">
         {query.data?.map((playlist) => (
           <PlaylistCard
             cardGroup={playlistGroupId}

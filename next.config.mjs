@@ -3,11 +3,21 @@
  * for Docker builds.
  */
 await import("./src/env.mjs");
-
+import withBundleAnalyzer from "@next/bundle-analyzer";
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
-
+  images: {
+    remotePatterns: [
+      {
+        hostname: "via.placeholder.com",
+      },
+      { hostname: "i.scdn.co" },
+    ],
+  },
   /**
    * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
    * out.
@@ -20,4 +30,4 @@ const config = {
   },
 };
 
-export default config;
+export default bundleAnalyzer(config);

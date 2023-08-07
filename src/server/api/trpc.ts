@@ -7,11 +7,13 @@
  * need to use are documented accordingly near the end.
  */
 
+import { type AccessToken, SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
+import { env } from "~/env.mjs";
 import { getServerAuthSession } from "~/server/auth";
 import { prisma } from "~/server/db";
 
@@ -128,3 +130,128 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
+  async ({ ctx, next }) => {
+    const token = await ctx.prisma.account.findFirst({
+      where: { userId: ctx.session.user.id },
+      select: {
+        access_token: true,
+        expires_at: true,
+        refresh_token: true,
+        token_type: true,
+      },
+    });
+    if (token == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "The server cannot find the user token, please try to sign in again.",
+      });
+    }
+    const tokenSet = {
+      access_token: token.access_token,
+      expires_in: token.expires_at,
+      refresh_token: token.refresh_token,
+      token_type: token.token_type,
+    } as AccessToken;
+    const sdk = SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID, tokenSet);
+    return next({
+      ctx: {
+        session: {
+          ...ctx.session,
+          user: ctx.session.user,
+        },
+        spotifySdk: sdk,
+      },
+    });
+  }
+);
+export const spotifyProcedure = t.procedure.use(addTokenToContext);
+
+export const playlistReadProcedure = publicProcedure
+  .input(z.object({ playlistId: z.string() }))
+  .use(async ({ ctx, next, input }) => {
+    const playlistReq = ctx.prisma.playlist.findUnique({
+      where: { id: input.playlistId },
+      include: {
+        tracks: true,
+        collaborators: {
+          select: {
+            id: true,
+            joinedAt: true,
+            user: { select: { image: true, name: true, id: true } },
+          },
+        },
+        owner: {
+          select: { image: true, name: true, id: true },
+        },
+      },
+    });
+    const playlist = await playlistReq;
+    if (playlist == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }
+    const isCollaborator = playlist.collaborators.some((collaborator) => {
+      return collaborator.user.id === ctx.session?.user?.id;
+    });
+
+    if (
+      playlist.readPrivacy === "public" ||
+      playlist.ownerId === ctx.session?.user?.id ||
+      (playlist.readPrivacy === "invite" && isCollaborator)
+    ) {
+      return next({ ctx: { playlist, playlistReq, isCollaborator } });
+    }
+
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this resource.",
+    });
+  });
+
+export const playlistEditProcedure = publicProcedure
+  .input(z.object({ playlistId: z.string() }))
+  .use(async ({ ctx, next, input }) => {
+    const playlistReq = ctx.prisma.playlist.findUnique({
+      where: { id: input.playlistId },
+      include: {
+        collaborators: {
+          select: {
+            id: true,
+            joinedAt: true,
+            user: { select: { image: true, name: true, id: true } },
+          },
+        },
+        owner: {
+          select: { image: true, name: true, id: true },
+        },
+      },
+    });
+    const playlist = await playlistReq;
+    if (playlist == null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }
+    const isCollaborator = playlist.collaborators.some((collaborator) => {
+      return collaborator.user.id === ctx.session?.user?.id;
+    });
+
+    if (
+      playlist.writePrivacy === "public" ||
+      playlist.ownerId === ctx.session?.user?.id ||
+      (playlist.writePrivacy === "invite" && isCollaborator)
+    ) {
+      return next({ ctx: { playlist, playlistReq, isCollaborator } });
+    }
+
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this resource.",
+    });
+  });
