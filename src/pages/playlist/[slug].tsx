@@ -7,7 +7,14 @@ import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import PlaylistHeader from "~/components/PlaylistHeader";
-
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import Track from "~/components/RowTrack";
 export default function PlaylistPage() {
   const router = useRouter();
   const getPlaylist = api.playlist.getPlaylist.useQuery(
@@ -59,6 +66,26 @@ export default function PlaylistPage() {
       </div>
 
       <Separator className="my-5" />
+
+      <div className=" container flex justify-around ">
+        <div className="p-5">
+          <Table className=" text-lg">
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Duration</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {getPlaylist.data?.playlist.tracks.map((track, i) => {
+                return <Track key={track.id} track={track} index={i} />;
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </main>
   );
 }

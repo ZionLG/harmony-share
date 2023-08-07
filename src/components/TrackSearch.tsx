@@ -10,7 +10,7 @@ type SearchProps = {
   playlistId: string;
 };
 
-const ProductSearch = ({ maxResults = 5, playlistId }: SearchProps) => {
+const TrackSearch = ({ maxResults = 5, playlistId }: SearchProps) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isPlayingPreview, setIsPlayingPreview] = useState<boolean>(false);
   const debouncedFilter = useDebounce(searchTerm, 300);
@@ -75,4 +75,4 @@ const ProductSearch = ({ maxResults = 5, playlistId }: SearchProps) => {
   );
 };
 
-export default ProductSearch;
+export default TrackSearch;
