@@ -26,8 +26,8 @@ export default function PlaylistPage() {
   const session = useSession();
 
   useEffect(() => {
-    if (getPlaylist.status === "error") void router.push("/");
-  }, [getPlaylist.status, router]);
+    if (session.status === "unauthenticated") void router.push("/");
+  }, [session, router]);
 
   if (getPlaylist.status === "loading" || getPlaylist.data == null)
     return <p>Loading...</p>;
