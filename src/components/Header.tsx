@@ -5,6 +5,8 @@ import { signIn, useSession } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 
 import AuthAvatar from "./AuthAvatar";
+import { Button } from "./ui/button";
+import { Dot } from "lucide-react";
 const Header = () => {
   const session = useSession();
 
@@ -16,20 +18,22 @@ const Header = () => {
         <Link href="/">Home</Link>
         <Link href="/playlists">Explore</Link>
       </nav>
-      <div className="ml-5">
-        {session.status !== "authenticated" ? (
-          <button
-            className="rounded-full bg-white/10 px-10 py-3 font-semibold text-gray-600 no-underline transition hover:bg-white/20"
+      {session.status !== "authenticated" ? (
+        <div className="flex items-center">
+          <Dot className="mx-2" />
+          <Button
             onClick={() =>
               void signIn("spotify", { callbackUrl: "/dashboard" })
             }
           >
             Sign in
-          </button>
-        ) : (
+          </Button>
+        </div>
+      ) : (
+        <div className="ml-5">
           <AuthAvatar />
-        )}
-      </div>
+        </div>
+      )}
     </header>
   );
 };
