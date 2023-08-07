@@ -28,7 +28,8 @@ export default function PlaylistEditPage() {
     if (session.status === "unauthenticated") void router.push("/");
     if (
       getPlaylist.data?.playlist.owner.id !== session.data?.user.id &&
-      getPlaylist.data?.isCollaborator === false
+      getPlaylist.data?.isCollaborator === false &&
+      getPlaylist.data?.playlist.writePrivacy !== "public"
     )
       void router.push("/");
   }, [
@@ -36,6 +37,7 @@ export default function PlaylistEditPage() {
     router,
     getPlaylist.data?.playlist.owner.id,
     getPlaylist.data?.isCollaborator,
+    getPlaylist.data?.playlist.writePrivacy,
   ]);
 
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function PlaylistEditPage() {
 
             <TableBody>
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
-                return <Track key={track.id} track={track} index={i} />;
+                return <Track key={track.id} track={track} index={i + 1} />;
               })}
             </TableBody>
           </Table>
