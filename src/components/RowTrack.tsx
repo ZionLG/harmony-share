@@ -1,19 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import { Track } from "@prisma/client";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import Link from "next/link";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { millisToMinutesAndSeconds } from "~/utils/helperFunctions";
+import type { useAudioReturnType } from "~/utils/useAudio";
+import { Pause, Play } from "lucide-react";
 
 type TrackProps = {
   track: Track;
   index: number;
+  audioState: useAudioReturnType;
 };
-const Track = ({ track, index }: TrackProps) => {
+const Track = ({ track, index, audioState }: TrackProps) => {
   const getTrack = api.spotify.getSongById.useQuery({
     songId: track.spotifyId,
   });
+
   if (!getTrack.data) return null;
   return (
     <TableRow className=" items-center gap-3 p-3">
@@ -45,6 +49,35 @@ const Track = ({ track, index }: TrackProps) => {
       </TableCell>
       <TableCell>
         {millisToMinutesAndSeconds(getTrack.data.duration_ms)}
+      </TableCell>
+      <TableCell>
+        {getTrack.data.previewUrl != null &&
+          (audioState.status === "playing" &&
+          audioState.urlState === getTrack.data.previewUrl ? (
+            <Pause
+              size={24}
+              className="fill-primary-foreground"
+              onClick={() => {
+                audioState.pause();
+              }}
+            />
+          ) : (
+            <Play
+              size={24}
+              className="fill-primary-foreground"
+              onClick={() => {
+                if (
+                  audioState.status !== "playing" &&
+                  getTrack.data.previewUrl
+                ) {
+                  audioState.setUrlState(getTrack.data.previewUrl);
+                } else if (getTrack.data.previewUrl) {
+                  audioState.pause();
+                  audioState.setUrlState(getTrack.data.previewUrl);
+                }
+              }}
+            />
+          ))}
       </TableCell>
     </TableRow>
   );

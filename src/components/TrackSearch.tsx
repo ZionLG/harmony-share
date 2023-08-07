@@ -5,14 +5,19 @@ import { useDebounce } from "usehooks-ts";
 import { type Track } from "~/utils/spotifyTypes";
 import SpotifyTrack from "./SpotifyTrack";
 import { Input } from "./ui/input";
+import type { useAudioReturnType } from "~/utils/useAudio";
 type SearchProps = {
   maxResults?: number;
   playlistId: string;
+  audioState: useAudioReturnType;
 };
 
-const TrackSearch = ({ maxResults = 5, playlistId }: SearchProps) => {
+const TrackSearch = ({
+  maxResults = 5,
+  playlistId,
+  audioState,
+}: SearchProps) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isPlayingPreview, setIsPlayingPreview] = useState<boolean>(false);
   const debouncedFilter = useDebounce(searchTerm, 300);
   const getSong = api.spotify.getSongSearch.useQuery(
     { name: debouncedFilter, resultNumber: maxResults },
@@ -25,8 +30,7 @@ const TrackSearch = ({ maxResults = 5, playlistId }: SearchProps) => {
   const formatResult = (track: Track) => {
     return (
       <SpotifyTrack
-        isPlayingPreview={isPlayingPreview}
-        setIsPlayingPreview={setIsPlayingPreview}
+        audioState={audioState}
         track={track}
         playlistId={playlistId}
         key={track.id}
