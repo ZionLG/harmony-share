@@ -36,6 +36,33 @@ export const playlistRouter = createTRPCRouter({
         return newPlaylist;
       }
     ),
+  edit: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(30),
+        description: z.string().max(100).optional(),
+        writePrivacy: z.enum(["private", "public", "invite"]),
+        readPrivacy: z.enum(["private", "public", "invite"]),
+      })
+    )
+    .mutation(
+      async ({
+        input: { name, description, readPrivacy, writePrivacy },
+        ctx,
+      }) => {
+        const userId = ctx.session.user.id;
+        const newPlaylist = await ctx.prisma.playlist.create({
+          data: {
+            name,
+            description,
+            readPrivacy,
+            writePrivacy,
+            ownerId: userId,
+          },
+        });
+        return newPlaylist;
+      }
+    ),
 
   getOwned: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.playlist.findMany({
@@ -118,20 +145,6 @@ export const playlistRouter = createTRPCRouter({
         message: "The server cannot find the requested resource.",
       });
     }),
-
-  deleteSong: playlistEditProcedure
-    .input(z.object({ trackId: z.string() }))
-    .mutation(async ({ input: { trackId }, ctx }) => {
-      const playlistTrack = await ctx.prisma.track.delete({
-        where: { id: trackId },
-      });
-
-      return playlistTrack;
-    }),
-  getTest: protectedProcedure.query(({ ctx }) => {
-    return ctx.session.user.id;
-  }),
-
   getPlaylist: playlistReadProcedure.query(({ ctx }) => {
     return {
       playlist: ctx.playlist,
