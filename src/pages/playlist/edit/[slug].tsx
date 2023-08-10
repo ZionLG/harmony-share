@@ -14,6 +14,8 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
+import { Button } from "~/components/ui/button";
+import PlaylistEditDetailsDialog from "~/components/PlaylistEditDetailsDialog";
 
 export default function PlaylistEditPage() {
   const audioState = useAudio({
@@ -63,6 +65,17 @@ export default function PlaylistEditPage() {
           name: getPlaylist.data.playlist.owner.name ?? "",
         }}
       />
+      {(getPlaylist.data.isCollaborator ||
+        getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
+        <div className="self-center">
+          <PlaylistEditDetailsDialog
+            description={getPlaylist.data.playlist.description}
+            name={getPlaylist.data.playlist.name}
+            readPrivacy={getPlaylist.data.playlist.readPrivacy}
+            writePrivacy={getPlaylist.data.playlist.writePrivacy}
+          />
+        </div>
+      )}
       <Separator className="my-5" />
       <div className=" container flex justify-around ">
         <TrackSearch
