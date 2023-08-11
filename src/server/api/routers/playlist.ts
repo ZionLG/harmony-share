@@ -39,6 +39,7 @@ export const playlistRouter = createTRPCRouter({
   edit: protectedProcedure
     .input(
       z.object({
+        id: z.string(),
         name: z.string().min(2).max(30),
         description: z.string().max(100).optional(),
         writePrivacy: z.enum(["private", "public", "invite"]),
@@ -47,17 +48,46 @@ export const playlistRouter = createTRPCRouter({
     )
     .mutation(
       async ({
-        input: { name, description, readPrivacy, writePrivacy },
+        input: { id, name, description, readPrivacy, writePrivacy },
         ctx,
       }) => {
         const userId = ctx.session.user.id;
-        const newPlaylist = await ctx.prisma.playlist.create({
+        const playlist = await ctx.prisma.playlist.findUnique({
+          where: { id },
+        });
+        if (playlist === null) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Playlist not found.",
+          });
+        }
+
+        if (playlist.ownerId !== userId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "You do not own this playlist.",
+          });
+        }
+
+        if (
+          playlist.name === name &&
+          playlist.description === description &&
+          playlist.readPrivacy === readPrivacy &&
+          playlist.writePrivacy === writePrivacy
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No changes made.",
+          });
+        }
+
+        const newPlaylist = await ctx.prisma.playlist.update({
+          where: { id: id },
           data: {
             name,
             description,
             readPrivacy,
             writePrivacy,
-            ownerId: userId,
           },
         });
         return newPlaylist;
@@ -118,6 +148,15 @@ export const playlistRouter = createTRPCRouter({
         code: "BAD_REQUEST",
         message: "Song already exists in playlist.",
       });
+    }),
+  deleteSong: playlistEditProcedure
+    .input(z.object({ trackId: z.string() }))
+    .mutation(async ({ input: { trackId }, ctx }) => {
+      const playlistTrack = await ctx.prisma.track.delete({
+        where: { id: trackId },
+      });
+
+      return playlistTrack;
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
