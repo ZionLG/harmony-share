@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { api } from "~/utils/api";
 import { useDebounce } from "usehooks-ts";
-import { type Track } from "~/utils/spotifyTypes";
-import SpotifyTrack from "./SpotifyTrack";
 import { Input } from "./ui/input";
-import Image from "next/image";
-import type { useAudioReturnType } from "~/utils/useAudio";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { getInitials } from "~/utils/helperFunctions";
 type SearchProps = {
@@ -24,7 +20,11 @@ const UserSearch = ({
 
   const debouncedFilter = useDebounce(searchUser, 150);
   const getUsers = api.users.getUsersByName.useQuery(
-    { username: debouncedFilter, resultNumber: maxResults },
+    {
+      username: debouncedFilter,
+      resultNumber: maxResults,
+      playlistIdNoCollabs: playlistId,
+    },
     {
       refetchOnWindowFocus: false,
 

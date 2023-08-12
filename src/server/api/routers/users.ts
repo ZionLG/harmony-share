@@ -7,17 +7,34 @@ export const usersRouter = createTRPCRouter({
       z.object({
         username: z.string(),
         resultNumber: z.number().min(1).max(10),
-        exception: z.string().array().optional(),
+        playlistIdNoCollabs: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      return ctx.prisma.user.findMany({
+      const users = await ctx.prisma.user.findMany({
         where: {
           name: { contains: input.username },
-          id: { notIn: input.exception },
         },
         take: input.resultNumber,
         select: { id: true, name: true, image: true },
       });
+      if (input.playlistIdNoCollabs) {
+        const playlistId = input.playlistIdNoCollabs;
+        const resultUsers = users.filter(async (user) => {
+          const hasCollab = await ctx.prisma.collaborator.findUnique({
+            where: {
+              playlistId_userId: {
+                playlistId,
+                userId: user.id,
+              },
+            },
+          });
+          console.log(!hasCollab && user.id !== ctx.session.user.id);
+          return !hasCollab && user.id !== ctx.session.user.id;
+        });
+        return resultUsers;
+      }
+
+      return users;
     }),
 });

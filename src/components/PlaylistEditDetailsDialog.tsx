@@ -41,28 +41,24 @@ import { Separator } from "./ui/separator";
 import { detailsFormSchema, PrivacyEnum } from "~/utils/formSchemas";
 import { type z } from "zod";
 import UserSearch from "./UserSearch";
+import { type UseTRPCQueryResult } from "@trpc/react-query/shared";
+import { type inferRouterOutputs } from "@trpc/server";
+import { type AppRouter } from "~/server/api/root";
+import { type TRPCClientErrorLike } from "@trpc/react-query";
 
-type PlaylistEditDetailsDialogProps = {
-  playlistId: string;
-  name: string;
-  description: string | null;
-  writePrivacy: "private" | "public" | "invite";
-  readPrivacy: "private" | "public" | "invite";
-};
-const PlaylistEditDetailsDialog = ({
-  playlistId,
-  description,
-  name,
-  readPrivacy,
-  writePrivacy,
-}: PlaylistEditDetailsDialogProps) => {
+type playlistOutputData = UseTRPCQueryResult<
+  inferRouterOutputs<AppRouter>["playlist"]["getPlaylist"],
+  TRPCClientErrorLike<AppRouter>["data"]
+>["data"];
+
+const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
   const detailsForm = useForm<z.infer<typeof detailsFormSchema>>({
     resolver: zodResolver(detailsFormSchema),
     defaultValues: {
-      name: name,
-      description: description ?? "",
-      readPrivacy: readPrivacy,
-      writePrivacy: writePrivacy,
+      name: playlist?.playlist.name,
+      description: playlist?.playlist.description ?? "",
+      readPrivacy: playlist?.playlist.readPrivacy,
+      writePrivacy: playlist?.playlist.writePrivacy,
     },
   });
 
@@ -85,13 +81,14 @@ const PlaylistEditDetailsDialog = ({
   const onSubmitDetails = detailsForm.handleSubmit(
     (values: z.infer<typeof detailsFormSchema>) => {
       if (isLoading) return;
-
+      if (!playlist) return;
+      const playlistData = playlist.playlist;
       // Nothing is changed - don't submit
       if (
-        values.name === name &&
-        values.description === description &&
-        values.readPrivacy === readPrivacy &&
-        values.writePrivacy === writePrivacy
+        values.name === playlistData.name &&
+        values.description === playlistData.description &&
+        values.readPrivacy === playlistData.readPrivacy &&
+        values.writePrivacy === playlistData.writePrivacy
       ) {
         detailsForm.setError("root", { message: "No changes made" });
         return;
@@ -99,14 +96,14 @@ const PlaylistEditDetailsDialog = ({
       try {
         detailsForm.reset();
         console.log(values);
-        mutate({ ...values, id: playlistId });
+        mutate({ ...values, id: playlistData.id });
         dialogClose();
       } catch (error) {
         console.error({ error }, "Failed to add playlist");
       }
     }
   );
-
+  if (!playlist) return null;
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -256,7 +253,7 @@ const PlaylistEditDetailsDialog = ({
           <Separator orientation="vertical" />
 
           <UserSearch
-            playlistId={playlistId}
+            playlistId={playlist.playlist.id}
             setSelectedUserId={setSelectedUserId}
           />
 

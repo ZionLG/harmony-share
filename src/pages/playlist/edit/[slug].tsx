@@ -68,11 +68,8 @@ export default function PlaylistEditPage() {
         getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
         <div className="self-center">
           <PlaylistEditDetailsDialog
-            playlistId={getPlaylist.data}
-            description={getPlaylist.data.playlist.description}
-            name={getPlaylist.data.playlist.name}
-            readPrivacy={getPlaylist.data.playlist.readPrivacy}
-            writePrivacy={getPlaylist.data.playlist.writePrivacy}
+            playlist={getPlaylist.data.playlist}
+            isCollaborator={getPlaylist.data.isCollaborator}
           />
         </div>
       )}
