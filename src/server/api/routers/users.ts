@@ -18,21 +18,30 @@ export const usersRouter = createTRPCRouter({
         take: input.resultNumber,
         select: { id: true, name: true, image: true },
       });
-      if (input.playlistIdNoCollabs) {
+      if (!!input.playlistIdNoCollabs) {
         const playlistId = input.playlistIdNoCollabs;
-        const resultUsers = users.filter(async (user) => {
-          const hasCollab = await ctx.prisma.collaborator.findUnique({
-            where: {
-              playlistId_userId: {
-                playlistId,
-                userId: user.id,
+        const resultUsers = await Promise.all(
+          users.map(async (user) => {
+            const hasCollab = await ctx.prisma.collaborator.findUnique({
+              where: {
+                playlistId_userId: {
+                  playlistId,
+                  userId: user.id,
+                },
               },
-            },
-          });
-          console.log(!hasCollab && user.id !== ctx.session.user.id);
-          return !hasCollab && user.id !== ctx.session.user.id;
-        });
-        return resultUsers;
+            });
+
+            const shouldInclude = !hasCollab && user.id !== ctx.session.user.id;
+            return shouldInclude ? user : null;
+          })
+        );
+
+        // Filter out the null values (users that should not be included)
+        return resultUsers.filter((user) => user !== null) as {
+          name: string | null;
+          id: string;
+          image: string | null;
+        }[];
       }
 
       return users;

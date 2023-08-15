@@ -92,7 +92,7 @@ export default function PlaylistPage() {
                     audioState={audioState}
                     key={track.id}
                     track={track}
-                    index={i}
+                    index={i + 1}
                   />
                 );
               })}
