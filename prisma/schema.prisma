@@ -60,9 +60,35 @@ model User {
 
     // none of these fields are used by next-auth
 
-    bio          String?
-    Playlist     Playlist[]
-    Collaborator Collaborator[]
+    bio           String?
+    Playlist      Playlist[]
+    Collaborator  Collaborator[]
+    notifications Notification[]
+}
+
+model Notification {
+    id                 String           @id @default(cuid())
+    userId             String
+    type               NotificationType
+    notificationTypeId String
+    read               Boolean          @default(false)
+    createdAt          DateTime         @default(now())
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+}
+
+model InviteNotification {
+    id       String       @id @default(cuid())
+    collabId String       @unique
+    collab   Collaborator @relation(fields: [collabId], references: [id], onDelete: Cascade)
+
+    @@index([collabId])
+}
+
+enum NotificationType {
+    invite
 }
 
 model Playlist {
@@ -98,16 +124,24 @@ model Track {
 }
 
 model Collaborator {
-    id         String   @id @default(cuid())
+    id         String       @id @default(cuid())
     playlistId String
     userId     String
-    joinedAt   DateTime @default(now())
+    joinedAt   DateTime?
+    status     CollabStatus @default(pending)
 
-    playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    playlist           Playlist            @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+    user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+    InviteNotification InviteNotification?
 
     @@unique([playlistId, userId])
     @@index([userId])
+}
+
+enum CollabStatus {
+    pending
+    accepted
+    declined
 }
 
 enum Privacy {

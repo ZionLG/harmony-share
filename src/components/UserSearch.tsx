@@ -8,13 +8,13 @@ import { getInitials } from "~/utils/helperFunctions";
 type SearchProps = {
   maxResults?: number;
   playlistId: string;
-  setSelectedUserId: React.Dispatch<React.SetStateAction<string | null>>;
+  onClickResult: (userId: string) => void;
 };
 
 const UserSearch = ({
   maxResults = 5,
   playlistId,
-  setSelectedUserId,
+  onClickResult,
 }: SearchProps) => {
   const [searchUser, setSearchUser] = useState<string>("");
 
@@ -41,8 +41,8 @@ const UserSearch = ({
         key={user.id}
         className="group m-2 flex items-center gap-2 rounded-md p-2 hover:bg-secondary"
         onClick={() => {
-          setSelectedUserId(user.id);
           setSearchUser("");
+          onClickResult(user.id);
         }}
       >
         <Avatar className=" h-12 w-12 cursor-pointer rounded-md text-2xl">

@@ -23,7 +23,7 @@ const AuthAvatar = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className=" relative h-16 w-16 cursor-pointer rounded-full text-2xl">
+        <Avatar className=" relative h-12 w-12 cursor-pointer rounded-full text-xl">
           <AvatarImage src={user.image ?? ""} />
           <AvatarFallback>{getInitials(user.name ?? "")}</AvatarFallback>
         </Avatar>

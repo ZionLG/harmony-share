@@ -45,6 +45,7 @@ import { type UseTRPCQueryResult } from "@trpc/react-query/shared";
 import { type inferRouterOutputs } from "@trpc/server";
 import { type AppRouter } from "~/server/api/root";
 import { type TRPCClientErrorLike } from "@trpc/react-query";
+import { ScrollArea } from "./ui/scroll-area";
 
 type playlistOutputData = UseTRPCQueryResult<
   inferRouterOutputs<AppRouter>["playlist"]["getPlaylist"],
@@ -64,23 +65,27 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
 
   const utils = api.useContext();
 
-  const { mutate, isLoading } = api.playlist.edit.useMutation({
-    onSuccess: () => {
-      void utils.playlist.getOwned.invalidate();
-      void utils.playlist.getPlaylist.invalidate();
-    },
-  });
+  const { mutate: editPlaylistMutate, isLoading: isLoadingPlaylistEdit } =
+    api.playlist.edit.useMutation({
+      onSuccess: () => {
+        void utils.playlist.getOwned.invalidate();
+        void utils.playlist.getPlaylist.invalidate();
+      },
+    });
 
-  const [selectedUserId, setSelectedUserId] = React.useState<string | null>(
-    null
-  );
+  const { mutate: inviteUserMutate, isLoading: isLoadingInvite } =
+    api.notifications.inviteToPlaylist.useMutation({
+      onSuccess: () => {
+        //void utils.playlist.getOwned.invalidate();
+      },
+    });
 
   const dialogClose = () => {
     document.getElementById("closeDialog")?.click();
   };
   const onSubmitDetails = detailsForm.handleSubmit(
     (values: z.infer<typeof detailsFormSchema>) => {
-      if (isLoading) return;
+      if (isLoadingPlaylistEdit) return;
       if (!playlist) return;
       const playlistData = playlist.playlist;
       // Nothing is changed - don't submit
@@ -96,7 +101,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
       try {
         detailsForm.reset();
         console.log(values);
-        mutate({ ...values, id: playlistData.id });
+        editPlaylistMutate({ ...values, id: playlistData.id });
         dialogClose();
       } catch (error) {
         console.error({ error }, "Failed to add playlist");
@@ -240,7 +245,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                   </FormItem>
                 )}
               />
-              <Button disabled={isLoading} type="submit">
+              <Button disabled={isLoadingPlaylistEdit} type="submit">
                 Edit
               </Button>
               {detailsForm.formState.errors.root && (
@@ -251,13 +256,38 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
             </form>
           </Form>
           <Separator orientation="vertical" />
+          <div className="flex flex-col items-center gap-5">
+            <ScrollArea className="h-24 w-48 rounded-md border">
+              <div className="p-4">
+                <h4 className="mb-4 text-sm font-medium leading-none">
+                  Collaborators
+                </h4>
+                <Separator className="my-2" />
 
-          <UserSearch
-            playlistId={playlist.playlist.id}
-            setSelectedUserId={setSelectedUserId}
-          />
-
-          <span>{selectedUserId}</span>
+                {playlist.playlist.collaborators.map((collab) => (
+                  <React.Fragment key={collab.id}>
+                    <div className="text-sm" key={collab.id}>
+                      {collab.user.name}
+                    </div>
+                    <Separator className="my-2" />
+                  </React.Fragment>
+                ))}
+              </div>
+            </ScrollArea>
+            <UserSearch
+              playlistId={playlist.playlist.id}
+              onClickResult={(userId) => {
+                if (userId && !isLoadingInvite) {
+                  try {
+                    inviteUserMutate({
+                      playlistId: playlist.playlist.id,
+                      invitedId: userId,
+                    });
+                  } catch (error) {}
+                }
+              }}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
