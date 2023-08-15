@@ -3,13 +3,10 @@ import { useSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useRouter } from "next/router";
 import { Bell } from "lucide-react";
 import { api } from "~/utils/api";
 import InviteNotification from "./InviteNotification";

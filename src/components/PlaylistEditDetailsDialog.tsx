@@ -308,7 +308,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                             size={16}
                             className="cursor-pointer text-muted-foreground"
                             onClick={() => {
-                              if (collab.user.id && !isLoadingInvite) {
+                              if (collab.user.id && !isLoadingDeleteCollab) {
                                 try {
                                   deleteCollabUserMutate({
                                     collaborationId: collab.id,

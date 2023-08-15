@@ -6,7 +6,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 import AuthAvatar from "./AuthAvatar";
 import { Button } from "./ui/button";
-import { Bell, Dot } from "lucide-react";
+import {  Dot } from "lucide-react";
 import NotificationDropdown from "./NotificationDropdown";
 const Header = () => {
   const session = useSession();
