@@ -129,14 +129,21 @@ export const notificationsRouter = createTRPCRouter({
         });
       }
 
-      const alreadyInvited = playlist.collaborators.some((collaborator) => {
+      const alreadyInvited = playlist.collaborators.find((collaborator) => {
         return collaborator.userId === input.invitedId;
       });
 
-      if (alreadyInvited) {
+      if (alreadyInvited?.status !== "declined") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User already invited to playlist.",
+        });
+      } else if (alreadyInvited?.status === "declined") {
+        return await ctx.prisma.collaborator.update({
+          where: { id: alreadyInvited.id },
+          data: {
+            status: "pending",
+          },
         });
       }
 
