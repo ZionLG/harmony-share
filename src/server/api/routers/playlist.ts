@@ -158,6 +158,42 @@ export const playlistRouter = createTRPCRouter({
 
       return playlistTrack;
     }),
+
+  deleteCollaborator: protectedProcedure
+    .input(z.object({ collaborationId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const playlistOwnerId = await ctx.prisma.collaborator.findUnique({
+        where: { id: input.collaborationId },
+        select: { playlist: true },
+      });
+      if (playlistOwnerId?.playlist.ownerId === ctx.session.user.id) {
+        const removedCollab = await ctx.prisma.collaborator.delete({
+          where: { id: input.collaborationId },
+          include: {
+            InviteNotification: true,
+          },
+        });
+        if (removedCollab.InviteNotification) {
+          await ctx.prisma.notification.delete({
+            where: { notificationTypeId: removedCollab.InviteNotification.id },
+          });
+        }
+
+        return removedCollab;
+      }
+
+      if (playlistOwnerId?.playlist.ownerId !== ctx.session.user.id)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to delete this collaborator.",
+        });
+
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input: { id }, ctx }) => {

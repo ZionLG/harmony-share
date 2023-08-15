@@ -36,7 +36,7 @@ import {
 
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/utils/api";
-import { AlertCircle, RotateCw } from "lucide-react";
+import { AlertCircle, RotateCw, Trash2 } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { detailsFormSchema, PrivacyEnum } from "~/utils/formSchemas";
 import { type z } from "zod";
@@ -75,6 +75,13 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
 
   const { mutate: inviteUserMutate, isLoading: isLoadingInvite } =
     api.notifications.inviteToPlaylist.useMutation({
+      onSuccess: () => {
+        void utils.playlist.getPlaylist.invalidate();
+      },
+    });
+
+  const { mutate: deleteCollabUserMutate, isLoading: isLoadingDeleteCollab } =
+    api.playlist.deleteCollaborator.useMutation({
       onSuccess: () => {
         void utils.playlist.getPlaylist.invalidate();
       },
@@ -279,22 +286,38 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                           {collab.user.name} -{" "}
                           <span className={color}>{status}</span>
                         </div>
-                        {status === "declined" && (
-                          <RotateCw
+                        <>
+                          {" "}
+                          {status === "declined" && (
+                            <RotateCw
+                              size={16}
+                              className="cursor-pointer text-muted-foreground"
+                              onClick={() => {
+                                if (collab.user.id && !isLoadingInvite) {
+                                  try {
+                                    inviteUserMutate({
+                                      playlistId: playlist.playlist.id,
+                                      invitedId: collab.user.id,
+                                    });
+                                  } catch (error) {}
+                                }
+                              }}
+                            />
+                          )}
+                          <Trash2
                             size={16}
                             className="cursor-pointer text-muted-foreground"
                             onClick={() => {
                               if (collab.user.id && !isLoadingInvite) {
                                 try {
-                                  inviteUserMutate({
-                                    playlistId: playlist.playlist.id,
-                                    invitedId: collab.user.id,
+                                  deleteCollabUserMutate({
+                                    collaborationId: collab.id,
                                   });
                                 } catch (error) {}
                               }
                             }}
                           />
-                        )}
+                        </>
                       </div>
                       <Separator className="my-2" />
                     </React.Fragment>
