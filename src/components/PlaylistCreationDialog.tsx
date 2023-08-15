@@ -34,58 +34,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-
+import { detailsFormSchema, PrivacyEnum } from "~/utils/formSchemas";
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/utils/api";
 import { AlertCircle } from "lucide-react";
 
-const PrivacyEnum = z.enum(["private", "public", "invite"], {
-  invalid_type_error: "Invalid privacy type",
-  required_error: "Privacy setting is required",
-});
-const formSchema = z
-  .object({
-    name: z
-      .string()
-      .min(2, {
-        message: "Username must be at least 2 characters.",
-      })
-      .max(30),
-    description: z
-      .string()
-      .max(100, {
-        message: "Description must be less than 100 characters.",
-      })
-      .optional(),
-    writePrivacy: PrivacyEnum,
-    readPrivacy: PrivacyEnum,
-  })
-  .superRefine((data, ctx) => {
-    if (data.readPrivacy === "invite" && data.writePrivacy === "public") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "You can't have a public write privacy with an invite read privacy.",
-        path: ["writePrivacy"],
-      });
-      return false;
-    } else if (
-      data.readPrivacy === "private" &&
-      data.writePrivacy !== "private"
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "You can't have a non-private write privacy with a private read privacy.",
-        path: ["writePrivacy"],
-      });
-      return false;
-    }
-  });
-
 const PlaylistCreationDialog = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof detailsFormSchema>>({
+    resolver: zodResolver(detailsFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -103,18 +59,20 @@ const PlaylistCreationDialog = () => {
   const dialogClose = () => {
     document.getElementById("closeDialog")?.click();
   };
-  const onSubmit = form.handleSubmit((values: z.infer<typeof formSchema>) => {
-    if (isLoading) return;
+  const onSubmit = form.handleSubmit(
+    (values: z.infer<typeof detailsFormSchema>) => {
+      if (isLoading) return;
 
-    try {
-      form.reset();
-      console.log(values);
-      mutate(values);
-      dialogClose();
-    } catch (error) {
-      console.error({ error }, "Failed to add playlist");
+      try {
+        form.reset();
+        console.log(values);
+        mutate(values);
+        dialogClose();
+      } catch (error) {
+        console.error({ error }, "Failed to add playlist");
+      }
     }
-  });
+  );
 
   return (
     <Dialog>
@@ -165,25 +123,6 @@ const PlaylistCreationDialog = () => {
             <FormField
               control={form.control}
               name="readPrivacy"
-              rules={{
-                validate: {
-                  required: () => {
-                    console.log("Running validation");
-                    if (
-                      form.getValues("readPrivacy") === "invite" &&
-                      form.getValues("writePrivacy") === "public"
-                    ) {
-                      return "You cannot have a public write privacy with an invite-only read privacy";
-                    } else if (
-                      form.getValues("readPrivacy") === "private" &&
-                      form.getValues("writePrivacy") !== "private"
-                    ) {
-                      return "You cannot have a private read privacy with a non-private write privacy";
-                    }
-                    return true;
-                  },
-                },
-              }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Read Privacy</FormLabel>
@@ -219,23 +158,6 @@ const PlaylistCreationDialog = () => {
             <FormField
               control={form.control}
               name="writePrivacy"
-              rules={{
-                validate: () => {
-                  console.log("Running validation");
-                  if (
-                    form.getValues("readPrivacy") === "invite" &&
-                    form.getValues("writePrivacy") === "public"
-                  ) {
-                    return false;
-                  } else if (
-                    form.getValues("readPrivacy") === "private" &&
-                    form.getValues("writePrivacy") !== "private"
-                  ) {
-                    return false;
-                  }
-                  return true;
-                },
-              }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Write Privacy</FormLabel>

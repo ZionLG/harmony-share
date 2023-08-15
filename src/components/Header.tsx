@@ -6,7 +6,8 @@ import { ThemeToggle } from "./ThemeToggle";
 
 import AuthAvatar from "./AuthAvatar";
 import { Button } from "./ui/button";
-import { Dot } from "lucide-react";
+import { Bell, Dot } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 const Header = () => {
   const session = useSession();
 
@@ -18,9 +19,9 @@ const Header = () => {
         <Link href="/">Home</Link>
         <Link href="/playlists">Explore</Link>
       </nav>
-      {session.status !== "authenticated" ? (
-        <div className="flex items-center">
-          <Dot className="mx-2" />
+      <div className="flex items-center">
+        <Dot className="mx-2" />
+        {session.status !== "authenticated" ? (
           <Button
             onClick={() =>
               void signIn("spotify", { callbackUrl: "/dashboard" })
@@ -28,12 +29,13 @@ const Header = () => {
           >
             Sign in
           </Button>
-        </div>
-      ) : (
-        <div className="ml-5">
-          <AuthAvatar />
-        </div>
-      )}
+        ) : (
+          <>
+            <NotificationDropdown />
+            <AuthAvatar />
+          </>
+        )}
+      </div>
     </header>
   );
 };

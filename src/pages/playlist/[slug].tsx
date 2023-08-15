@@ -88,10 +88,11 @@ export default function PlaylistPage() {
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
                 return (
                   <Track
+                    playlistId={router.query.slug as string}
                     audioState={audioState}
                     key={track.id}
                     track={track}
-                    index={i}
+                    index={i + 1}
                   />
                 );
               })}

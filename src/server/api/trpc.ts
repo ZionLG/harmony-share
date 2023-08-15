@@ -181,6 +181,7 @@ export const playlistReadProcedure = publicProcedure
             id: true,
             joinedAt: true,
             user: { select: { image: true, name: true, id: true } },
+            status: true,
           },
         },
         owner: {
@@ -196,7 +197,10 @@ export const playlistReadProcedure = publicProcedure
       });
     }
     const isCollaborator = playlist.collaborators.some((collaborator) => {
-      return collaborator.user.id === ctx.session?.user?.id;
+      return (
+        collaborator.user.id === ctx.session?.user?.id &&
+        collaborator.status === "accepted"
+      );
     });
 
     if (
@@ -224,6 +228,7 @@ export const playlistEditProcedure = publicProcedure
             id: true,
             joinedAt: true,
             user: { select: { image: true, name: true, id: true } },
+            status: true,
           },
         },
         owner: {
@@ -239,7 +244,10 @@ export const playlistEditProcedure = publicProcedure
       });
     }
     const isCollaborator = playlist.collaborators.some((collaborator) => {
-      return collaborator.user.id === ctx.session?.user?.id;
+      return (
+        collaborator.user.id === ctx.session?.user?.id &&
+        collaborator.status === "accepted"
+      );
     });
 
     if (

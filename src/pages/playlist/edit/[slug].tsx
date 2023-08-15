@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
+import PlaylistEditDetailsDialog from "~/components/PlaylistEditDetailsDialog";
 
 export default function PlaylistEditPage() {
   const audioState = useAudio({
@@ -63,6 +64,15 @@ export default function PlaylistEditPage() {
           name: getPlaylist.data.playlist.owner.name ?? "",
         }}
       />
+      {(getPlaylist.data.isCollaborator ||
+        getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
+        <div className="self-center">
+          <PlaylistEditDetailsDialog
+            playlist={getPlaylist.data.playlist}
+            isCollaborator={getPlaylist.data.isCollaborator}
+          />
+        </div>
+      )}
       <Separator className="my-5" />
       <div className=" container flex justify-around ">
         <TrackSearch
@@ -77,6 +87,7 @@ export default function PlaylistEditPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Preview</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
 
@@ -84,6 +95,8 @@ export default function PlaylistEditPage() {
               {getPlaylist.data?.playlist.tracks.map((track, i) => {
                 return (
                   <Track
+                    isEditTrack={true}
+                    playlistId={router.query.slug as string}
                     audioState={audioState}
                     key={track.id}
                     track={track}

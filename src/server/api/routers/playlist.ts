@@ -36,6 +36,63 @@ export const playlistRouter = createTRPCRouter({
         return newPlaylist;
       }
     ),
+  edit: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(2).max(30),
+        description: z.string().max(100).optional(),
+        writePrivacy: z.enum(["private", "public", "invite"]),
+        readPrivacy: z.enum(["private", "public", "invite"]),
+      })
+    )
+    .mutation(
+      async ({
+        input: { id, name, description, readPrivacy, writePrivacy },
+        ctx,
+      }) => {
+        const userId = ctx.session.user.id;
+        const playlist = await ctx.prisma.playlist.findUnique({
+          where: { id },
+        });
+        if (playlist === null) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Playlist not found.",
+          });
+        }
+
+        if (playlist.ownerId !== userId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "You do not own this playlist.",
+          });
+        }
+
+        if (
+          playlist.name === name &&
+          playlist.description === description &&
+          playlist.readPrivacy === readPrivacy &&
+          playlist.writePrivacy === writePrivacy
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No changes made.",
+          });
+        }
+
+        const newPlaylist = await ctx.prisma.playlist.update({
+          where: { id: id },
+          data: {
+            name,
+            description,
+            readPrivacy,
+            writePrivacy,
+          },
+        });
+        return newPlaylist;
+      }
+    ),
 
   getOwned: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.playlist.findMany({
@@ -92,6 +149,51 @@ export const playlistRouter = createTRPCRouter({
         message: "Song already exists in playlist.",
       });
     }),
+  deleteSong: playlistEditProcedure
+    .input(z.object({ trackId: z.string() }))
+    .mutation(async ({ input: { trackId }, ctx }) => {
+      const playlistTrack = await ctx.prisma.track.delete({
+        where: { id: trackId },
+      });
+
+      return playlistTrack;
+    }),
+
+  deleteCollaborator: protectedProcedure
+    .input(z.object({ collaborationId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const playlistOwnerId = await ctx.prisma.collaborator.findUnique({
+        where: { id: input.collaborationId },
+        select: { playlist: true },
+      });
+      if (playlistOwnerId?.playlist.ownerId === ctx.session.user.id) {
+        const removedCollab = await ctx.prisma.collaborator.delete({
+          where: { id: input.collaborationId },
+          include: {
+            InviteNotification: true,
+          },
+        });
+        if (removedCollab.InviteNotification) {
+          await ctx.prisma.notification.delete({
+            where: { notificationTypeId: removedCollab.InviteNotification.id },
+          });
+        }
+
+        return removedCollab;
+      }
+
+      if (playlistOwnerId?.playlist.ownerId !== ctx.session.user.id)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to delete this collaborator.",
+        });
+
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The server cannot find the requested resource.",
+      });
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input: { id }, ctx }) => {
