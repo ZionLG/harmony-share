@@ -134,21 +134,6 @@ const InviteNotification = ({ notification }: InviteNotificationProps) => {
           {collab.status === "pending" && (
             <div className="flex items-center justify-center">
               <Button
-                disabled={isLoadingInviteStatus}
-                onClick={() => {
-                  inviteStatusMutate({
-                    status: "declined",
-                    collabId: collab.id,
-                  });
-                }}
-                variant={"destructive"}
-                size={"icon"}
-                className="rounded-full "
-              >
-                <X />
-              </Button>
-              <Dot className="mx-2" />
-              <Button
                 size={"icon"}
                 disabled={isLoadingInviteStatus}
                 className="rounded-full "
@@ -161,6 +146,21 @@ const InviteNotification = ({ notification }: InviteNotificationProps) => {
                 }}
               >
                 <Check />
+              </Button>
+              <Dot className="mx-2" />
+              <Button
+                disabled={isLoadingInviteStatus}
+                onClick={() => {
+                  inviteStatusMutate({
+                    status: "declined",
+                    collabId: collab.id,
+                  });
+                }}
+                variant={"destructive"}
+                size={"icon"}
+                className="rounded-full "
+              >
+                <X />
               </Button>
             </div>
           )}

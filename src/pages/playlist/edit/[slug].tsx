@@ -14,8 +14,14 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
-import PlaylistEditDetailsDialog from "~/components/PlaylistEditDetailsDialog";
+import dynamic from "next/dynamic";
 
+const DynamicPlaylistEdit = dynamic(
+  () => import("~/components/PlaylistEditDetailsDialog"),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+);
 export default function PlaylistEditPage() {
   const audioState = useAudio({
     url: "",
@@ -67,7 +73,7 @@ export default function PlaylistEditPage() {
       {(getPlaylist.data.isCollaborator ||
         getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
         <div className="self-center">
-          <PlaylistEditDetailsDialog
+          <DynamicPlaylistEdit
             playlist={getPlaylist.data.playlist}
             isCollaborator={getPlaylist.data.isCollaborator}
           />
