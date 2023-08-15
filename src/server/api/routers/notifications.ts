@@ -138,7 +138,7 @@ export const notificationsRouter = createTRPCRouter({
           code: "BAD_REQUEST",
           message: "User already invited to playlist.",
         });
-      } else if (alreadyInvited && alreadyInvited?.status === "declined") {
+      } else if (alreadyInvited && alreadyInvited.status === "declined") {
         return await ctx.prisma.collaborator.update({
           where: { id: alreadyInvited.id },
           data: {
