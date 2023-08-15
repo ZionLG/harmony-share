@@ -36,7 +36,7 @@ import {
 
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/utils/api";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RotateCw, Trash2 } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { detailsFormSchema, PrivacyEnum } from "~/utils/formSchemas";
 import { type z } from "zod";
@@ -76,7 +76,14 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
   const { mutate: inviteUserMutate, isLoading: isLoadingInvite } =
     api.notifications.inviteToPlaylist.useMutation({
       onSuccess: () => {
-        //void utils.playlist.getOwned.invalidate();
+        void utils.playlist.getPlaylist.invalidate();
+      },
+    });
+
+  const { mutate: deleteCollabUserMutate, isLoading: isLoadingDeleteCollab } =
+    api.playlist.deleteCollaborator.useMutation({
+      onSuccess: () => {
+        void utils.playlist.getPlaylist.invalidate();
       },
     });
 
@@ -264,14 +271,58 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                 </h4>
                 <Separator className="my-2" />
 
-                {playlist.playlist.collaborators.map((collab) => (
-                  <React.Fragment key={collab.id}>
-                    <div className="text-sm" key={collab.id}>
-                      {collab.user.name}
-                    </div>
-                    <Separator className="my-2" />
-                  </React.Fragment>
-                ))}
+                {playlist.playlist.collaborators.map((collab) => {
+                  const status = collab.status;
+                  const color =
+                    status === "accepted"
+                      ? "text-green-300"
+                      : status === "declined"
+                      ? "text-red-300"
+                      : "text-yellow-300";
+                  return (
+                    <React.Fragment key={collab.id}>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm" key={collab.id}>
+                          {collab.user.name} -{" "}
+                          <span className={color}>{status}</span>
+                        </div>
+                        <>
+                          {" "}
+                          {status === "declined" && (
+                            <RotateCw
+                              size={16}
+                              className="cursor-pointer text-muted-foreground"
+                              onClick={() => {
+                                if (collab.user.id && !isLoadingInvite) {
+                                  try {
+                                    inviteUserMutate({
+                                      playlistId: playlist.playlist.id,
+                                      invitedId: collab.user.id,
+                                    });
+                                  } catch (error) {}
+                                }
+                              }}
+                            />
+                          )}
+                          <Trash2
+                            size={16}
+                            className="cursor-pointer text-muted-foreground"
+                            onClick={() => {
+                              if (collab.user.id && !isLoadingInvite) {
+                                try {
+                                  deleteCollabUserMutate({
+                                    collaborationId: collab.id,
+                                  });
+                                } catch (error) {}
+                              }
+                            }}
+                          />
+                        </>
+                      </div>
+                      <Separator className="my-2" />
+                    </React.Fragment>
+                  );
+                })}
               </div>
             </ScrollArea>
             <UserSearch
