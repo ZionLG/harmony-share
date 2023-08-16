@@ -129,6 +129,17 @@ export const notificationsRouter = createTRPCRouter({
         });
       }
 
+      if (
+        playlist.readPrivacy !== "invite" &&
+        playlist.writePrivacy !== "invite"
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "You can only invite to invite read OR invite write playlists.",
+        });
+      }
+
       const alreadyInvited = playlist.collaborators.find((collaborator) => {
         return collaborator.userId === input.invitedId;
       });

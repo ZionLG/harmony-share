@@ -38,12 +38,12 @@ export default function PlaylistEditPage() {
   );
   useEffect(() => {
     if (session.status === "unauthenticated") void router.push("/");
-    if (
-      getPlaylist.data?.playlist.owner.id !== session.data?.user.id &&
-      getPlaylist.data?.isCollaborator === false &&
-      getPlaylist.data?.playlist.writePrivacy !== "public"
-    )
-      void router.push("/");
+    const ownerOrPublicOrCollabWrite =
+      getPlaylist.data?.playlist.owner.id === session.data?.user.id ||
+      getPlaylist.data?.playlist.writePrivacy === "public" ||
+      (getPlaylist.data?.isCollaborator === true &&
+        getPlaylist.data?.playlist.writePrivacy === "invite");
+    if (!ownerOrPublicOrCollabWrite) void router.push("/");
   }, [
     session,
     router,
@@ -70,8 +70,7 @@ export default function PlaylistEditPage() {
           name: getPlaylist.data.playlist.owner.name ?? "",
         }}
       />
-      {(getPlaylist.data.isCollaborator ||
-        getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
+      {getPlaylist.data.playlist.ownerId === session.data?.user?.id && (
         <div className="self-center">
           <DynamicPlaylistEdit
             playlist={getPlaylist.data.playlist}
