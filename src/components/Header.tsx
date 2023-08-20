@@ -6,7 +6,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 import AuthAvatar from "./AuthAvatar";
 import { Button } from "./ui/button";
-import {  Dot } from "lucide-react";
+import { Dot } from "lucide-react";
 import NotificationDropdown from "./NotificationDropdown";
 const Header = () => {
   const session = useSession();
@@ -30,10 +30,10 @@ const Header = () => {
             Sign in
           </Button>
         ) : (
-          <>
+          <div className="flex items-center gap-1">
             <NotificationDropdown />
             <AuthAvatar />
-          </>
+          </div>
         )}
       </div>
     </header>
