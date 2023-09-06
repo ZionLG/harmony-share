@@ -1,11 +1,11 @@
-import { type UserResponse, type MaxInt } from "@spotify/web-api-ts-sdk";
+import { type MaxInt } from "@spotify/web-api-ts-sdk";
 import { z } from "zod";
 import { createTRPCRouter, spotifyProcedure } from "~/server/api/trpc";
 import { type Artist, type Track } from "~/utils/spotifyTypes";
 
 export const spotifyRouter = createTRPCRouter({
   getMe: spotifyProcedure.query(async ({ ctx }) => {
-    return ctx.spotifySdk.currentUser.profile() as Promise<UserResponse>;
+    return ctx.spotifySdk.currentUser.profile();
   }),
   getSongSearch: spotifyProcedure
     .input(
