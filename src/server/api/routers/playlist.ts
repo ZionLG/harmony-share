@@ -158,7 +158,31 @@ export const playlistRouter = createTRPCRouter({
 
       return playlistTrack;
     }),
+  toggleLikePlaylist: playlistReadProcedure.mutation(async ({ ctx }) => {
+    const data = {
+      playlistId: ctx.playlist.id,
+      userId: ctx.session.user.id,
+    };
+    const getLike = await ctx.prisma.likePlaylist.findUnique({
+      where: {
+        userId_playlistId: data,
+      },
+    });
 
+    if (getLike == null) {
+      await ctx.prisma.likePlaylist.create({
+        data: data,
+      });
+      return { addedLike: true };
+    } else {
+      await ctx.prisma.likePlaylist.delete({
+        where: {
+          userId_playlistId: data,
+        },
+      });
+      return { addedLike: false };
+    }
+  }),
   deleteCollaborator: protectedProcedure
     .input(z.object({ collaborationId: z.string() }))
     .mutation(async ({ input, ctx }) => {

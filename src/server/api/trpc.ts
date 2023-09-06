@@ -178,9 +178,10 @@ const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
 );
 export const spotifyProcedure = t.procedure.use(addTokenToContext);
 
-export const playlistReadProcedure = publicProcedure
+export const playlistReadProcedure = protectedProcedure
   .input(z.object({ playlistId: z.string() }))
   .use(async ({ ctx, next, input }) => {
+    const currentUserId = ctx.session?.user?.id;
     const playlistReq = ctx.prisma.playlist.findUnique({
       where: { id: input.playlistId },
       include: {
@@ -193,6 +194,9 @@ export const playlistReadProcedure = publicProcedure
             status: true,
           },
         },
+        _count: { select: { likes: true } },
+        likes:
+          currentUserId == null ? false : { where: { userId: currentUserId } },
         owner: {
           select: { image: true, name: true, id: true },
         },
@@ -226,7 +230,7 @@ export const playlistReadProcedure = publicProcedure
     });
   });
 
-export const playlistEditProcedure = publicProcedure
+export const playlistEditProcedure = protectedProcedure
   .input(z.object({ playlistId: z.string() }))
   .use(async ({ ctx, next, input }) => {
     const playlistReq = ctx.prisma.playlist.findUnique({

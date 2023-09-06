@@ -60,10 +60,11 @@ model User {
 
     // none of these fields are used by next-auth
 
-    bio           String?
-    Playlist      Playlist[]
-    Collaborator  Collaborator[]
-    notifications Notification[]
+    bio            String?
+    ownedPlaylists Playlist[]
+    Collaborator   Collaborator[]
+    notifications  Notification[]
+    likedPlaylists LikePlaylist[]
 }
 
 model Notification {
@@ -91,6 +92,17 @@ enum NotificationType {
     invite
 }
 
+model LikePlaylist {
+    userId     String
+    playlistId String
+    User       User     @relation(fields: [userId], references: [id])
+    Playlist   Playlist @relation(fields: [playlistId], references: [id])
+
+    @@id([userId, playlistId])
+    @@index([playlistId])
+    @@index([userId])
+}
+
 model Playlist {
     id           String  @id @default(cuid())
     name         String
@@ -108,6 +120,7 @@ model Playlist {
     updatedAt DateTime @updatedAt
 
     collaborators Collaborator[]
+    likes         LikePlaylist[]
 
     @@index([ownerId])
 }
