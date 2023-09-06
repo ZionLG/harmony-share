@@ -42,6 +42,20 @@ export const notificationsRouter = createTRPCRouter({
 
       return collabUpdated;
     }),
+  setAllNotificationsRead: protectedProcedure.mutation(async ({ ctx }) => {
+    const notifications = await ctx.prisma.notification.updateMany({
+      where: { read: false, userId: ctx.session.user.id },
+      data: {
+        read: true,
+      },
+    });
+
+    if (notifications === null) {
+      return;
+    }
+
+    return notifications;
+  }),
   getUserNotifications: protectedProcedure.query(async ({ ctx }) => {
     const notificationResults = [];
     const notifications = await ctx.prisma.notification.findMany({
@@ -49,6 +63,7 @@ export const notificationsRouter = createTRPCRouter({
       select: {
         id: true,
         type: true,
+        read: true,
         createdAt: true,
         notificationTypeId: true,
       },
