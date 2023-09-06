@@ -7,7 +7,12 @@
  * need to use are documented accordingly near the end.
  */
 
-import { type AccessToken, SpotifyApi } from "@spotify/web-api-ts-sdk";
+import {
+  type AccessToken,
+  SpotifyApi,
+  Market,
+  UserResponse,
+} from "@spotify/web-api-ts-sdk";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
@@ -156,11 +161,15 @@ const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
       token_type: token.token_type,
     } as AccessToken;
     const sdk = SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID, tokenSet);
+    const profile = (await sdk.currentUser.profile()) as UserResponse;
     return next({
       ctx: {
         session: {
           ...ctx.session,
-          user: ctx.session.user,
+          user: {
+            ...ctx.session.user,
+            spotifyMarket: profile.country as Market,
+          },
         },
         spotifySdk: sdk,
       },
@@ -169,9 +178,10 @@ const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
 );
 export const spotifyProcedure = t.procedure.use(addTokenToContext);
 
-export const playlistReadProcedure = publicProcedure
+export const playlistReadProcedure = protectedProcedure
   .input(z.object({ playlistId: z.string() }))
   .use(async ({ ctx, next, input }) => {
+    const currentUserId = ctx.session?.user?.id;
     const playlistReq = ctx.prisma.playlist.findUnique({
       where: { id: input.playlistId },
       include: {
@@ -184,6 +194,9 @@ export const playlistReadProcedure = publicProcedure
             status: true,
           },
         },
+        _count: { select: { likes: true } },
+        likes:
+          currentUserId == null ? false : { where: { userId: currentUserId } },
         owner: {
           select: { image: true, name: true, id: true },
         },
@@ -217,7 +230,7 @@ export const playlistReadProcedure = publicProcedure
     });
   });
 
-export const playlistEditProcedure = publicProcedure
+export const playlistEditProcedure = protectedProcedure
   .input(z.object({ playlistId: z.string() }))
   .use(async ({ ctx, next, input }) => {
     const playlistReq = ctx.prisma.playlist.findUnique({
