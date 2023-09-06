@@ -42,6 +42,20 @@ export const notificationsRouter = createTRPCRouter({
 
       return collabUpdated;
     }),
+  setAllNotificationsRead: protectedProcedure.mutation(async ({ ctx }) => {
+    const notifications = await ctx.prisma.notification.updateMany({
+      where: { read: false, userId: ctx.session.user.id },
+      data: {
+        read: true,
+      },
+    });
+
+    if (notifications === null) {
+      return;
+    }
+
+    return notifications;
+  }),
   getUserNotifications: protectedProcedure.query(async ({ ctx }) => {
     const notificationResults = [];
     const notifications = await ctx.prisma.notification.findMany({
@@ -49,6 +63,7 @@ export const notificationsRouter = createTRPCRouter({
       select: {
         id: true,
         type: true,
+        read: true,
         createdAt: true,
         notificationTypeId: true,
       },
@@ -126,6 +141,17 @@ export const notificationsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "You cannot be a collaborator of your own playlist.",
+        });
+      }
+
+      if (
+        playlist.readPrivacy !== "invite" &&
+        playlist.writePrivacy !== "invite"
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "You can only invite to invite read OR invite write playlists.",
         });
       }
 

@@ -132,7 +132,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
         </DialogHeader>
         <div className="flex gap-5">
           <Form {...detailsForm}>
-            <form onSubmit={onSubmitDetails} className="w-60 space-y-8">
+            <form onSubmit={onSubmitDetails} className=" space-y-8">
               <FormField
                 control={detailsForm.control}
                 name="name"
@@ -165,48 +165,13 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={detailsForm.control}
-                name="readPrivacy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Read Privacy</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={PrivacyEnum.enum.private}>
-                          Private
-                        </SelectItem>
-                        <SelectItem value={PrivacyEnum.enum.public}>
-                          Public
-                        </SelectItem>
-                        <SelectItem value={PrivacyEnum.enum.invite}>
-                          Invite-Only
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      This is your playlist read privacy setting. It determines
-                      who can view your playlist.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={detailsForm.control}
-                name="writePrivacy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Write Privacy</FormLabel>
-                    <div className="flex items-center gap-3">
+              <div className="flex gap-4">
+                <FormField
+                  control={detailsForm.control}
+                  name="readPrivacy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Read Privacy</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -228,30 +193,67 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      {detailsForm.getValues("writePrivacy") === "public" && (
-                        <TooltipProvider delayDuration={100}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <AlertCircle color="#ebce3d" size={28} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                This allows any registered user to add and
-                                remove tracks from your playlist.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                    <FormDescription>
-                      This is your playlist write privacy setting. It determines
-                      who can edit your playlist.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormDescription>
+                        This is your playlist read privacy setting. It
+                        determines who can view your playlist.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={detailsForm.control}
+                  name="writePrivacy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Write Privacy</FormLabel>
+                      <div className="flex items-center gap-3">
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={PrivacyEnum.enum.private}>
+                              Private
+                            </SelectItem>
+                            <SelectItem value={PrivacyEnum.enum.public}>
+                              Public
+                            </SelectItem>
+                            <SelectItem value={PrivacyEnum.enum.invite}>
+                              Invite-Only
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {detailsForm.getValues("writePrivacy") === "public" && (
+                          <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertCircle color="#ebce3d" size={28} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  This allows any registered user to add and
+                                  remove tracks from your playlist.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                      <FormDescription>
+                        This is your playlist write privacy setting. It
+                        determines who can edit your playlist.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <Button disabled={isLoadingPlaylistEdit} type="submit">
                 Edit
               </Button>
@@ -264,7 +266,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
           </Form>
           <Separator orientation="vertical" />
           <div className="flex flex-col items-center gap-5">
-            <ScrollArea className="h-24 w-48 rounded-md border">
+            <ScrollArea className="h-24 w-fit min-w-[12rem] rounded-md border">
               <div className="p-4">
                 <h4 className="mb-4 text-sm font-medium leading-none">
                   Collaborators
@@ -281,10 +283,10 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                       : "text-yellow-300";
                   return (
                     <React.Fragment key={collab.id}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="text-sm" key={collab.id}>
                           {collab.user.name} -{" "}
-                          <span className={color}>{status}</span>
+                          <span className={`${color}`}>{status}</span>
                         </div>
                         <>
                           {" "}

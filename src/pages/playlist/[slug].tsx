@@ -49,8 +49,10 @@ export default function PlaylistPage() {
         }}
       />
       <div className="flex gap-5">
-        {(getPlaylist.data.isCollaborator ||
-          getPlaylist.data.playlist.ownerId === session.data?.user?.id) && (
+        {(getPlaylist.data?.playlist.owner.id === session.data?.user.id ||
+          getPlaylist.data?.playlist.writePrivacy === "public" ||
+          (getPlaylist.data?.isCollaborator === true &&
+            getPlaylist.data?.playlist.writePrivacy === "invite")) && (
           <Link href={`/playlist/edit/${router.query.slug as string}`}>
             <Button>Edit</Button>
           </Link>
