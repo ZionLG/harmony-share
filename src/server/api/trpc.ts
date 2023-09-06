@@ -10,8 +10,7 @@
 import {
   type AccessToken,
   SpotifyApi,
-  Market,
-  UserResponse,
+  type Market,
 } from "@spotify/web-api-ts-sdk";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
@@ -161,7 +160,7 @@ const addTokenToContext = enforceUserIsAuthed.unstable_pipe(
       token_type: token.token_type,
     } as AccessToken;
     const sdk = SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID, tokenSet);
-    const profile = (await sdk.currentUser.profile()) as UserResponse;
+    const profile = await sdk.currentUser.profile();
     return next({
       ctx: {
         session: {
