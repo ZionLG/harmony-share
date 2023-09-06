@@ -1,11 +1,11 @@
-import { type MaxInt } from "@spotify/web-api-ts-sdk";
+import { type UserResponse, type MaxInt } from "@spotify/web-api-ts-sdk";
 import { z } from "zod";
 import { createTRPCRouter, spotifyProcedure } from "~/server/api/trpc";
 import { type Artist, type Track } from "~/utils/spotifyTypes";
 
 export const spotifyRouter = createTRPCRouter({
   getMe: spotifyProcedure.query(async ({ ctx }) => {
-    return ctx.spotifySdk.currentUser.profile();
+    return ctx.spotifySdk.currentUser.profile() as Promise<UserResponse>;
   }),
   getSongSearch: spotifyProcedure
     .input(
@@ -15,7 +15,7 @@ export const spotifyRouter = createTRPCRouter({
       const trackResult = await ctx.spotifySdk.search(
         input.name,
         ["track"],
-        undefined,
+        ctx.session.user.spotifyMarket,
         input.resultNumber as MaxInt<50>
       );
       const data = { tracks: [] as Track[] };
@@ -47,7 +47,10 @@ export const spotifyRouter = createTRPCRouter({
   getSongById: spotifyProcedure
     .input(z.object({ songId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const trackResult = await ctx.spotifySdk.tracks.get(input.songId);
+      const trackResult = await ctx.spotifySdk.tracks.get(
+        input.songId,
+        ctx.session.user.spotifyMarket
+      );
       const artists = [] as Artist[];
       trackResult.artists.forEach((artist) => {
         artists.push({
