@@ -124,6 +124,12 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     SpotifyProvider({
+      authorization: {
+        params: {
+          scope:
+            "user-read-private user-read-email playlist-modify-public playlist-modify-private",
+        },
+      },
       clientId: env.SPOTIFY_CLIENT_ID,
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
     }),

@@ -84,7 +84,7 @@ const InviteNotification = ({ notification }: InviteNotificationProps) => {
               </AvatarFallback>
             </Avatar>
             <div className="text-md flex flex-col gap-1">
-              <Link href={`playlist/${playlist.id}`}>{playlist.name}</Link>
+              <Link href={`/playlist/${playlist.id}`}>{playlist.name}</Link>
               <span className="text-sm text-muted-foreground">
                 {getLocalizedPrivacyName(playlist.readPrivacy)} (Write:{" "}
                 {getLocalizedPrivacyName(playlist.writePrivacy)})

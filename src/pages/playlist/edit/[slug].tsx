@@ -43,13 +43,14 @@ export default function PlaylistEditPage() {
       getPlaylist.data?.playlist.writePrivacy === "public" ||
       (getPlaylist.data?.isCollaborator === true &&
         getPlaylist.data?.playlist.writePrivacy === "invite");
-    if (!ownerOrPublicOrCollabWrite) void router.push("/");
+    if (getPlaylist.data && !ownerOrPublicOrCollabWrite) void router.push("/");
   }, [
     session,
     router,
     getPlaylist.data?.playlist.owner.id,
     getPlaylist.data?.isCollaborator,
     getPlaylist.data?.playlist.writePrivacy,
+    getPlaylist.data,
   ]);
 
   useEffect(() => {
