@@ -40,58 +40,61 @@ export default function PlaylistPage() {
     )
       void router.push("/");
   }, [session, router, getPlaylist]);
-  const { mutate, isLoading } = api.playlist.toggleLikePlaylist.useMutation({
-    async onMutate() {
-      // Cancel outgoing fetches (so they don't overwrite our optimistic update)
-      await utils.playlist.getPlaylist.cancel();
+  const { mutate: addToSpotify, isLoading: isLoadingAddToSpotify } =
+    api.spotify.addPlaylistToSpotify.useMutation();
+  const { mutate: likeMutate, isLoading: isLoadingLike } =
+    api.playlist.toggleLikePlaylist.useMutation({
+      async onMutate() {
+        // Cancel outgoing fetches (so they don't overwrite our optimistic update)
+        await utils.playlist.getPlaylist.cancel();
 
-      // Get the data from the queryCache
-      const prevData = utils.playlist.getPlaylist.getData({
-        playlistId: router.query.slug as string,
-      });
-      const optimisticPlaylistLike = cloneObject(prevData);
+        // Get the data from the queryCache
+        const prevData = utils.playlist.getPlaylist.getData({
+          playlistId: router.query.slug as string,
+        });
+        const optimisticPlaylistLike = cloneObject(prevData);
 
-      if (optimisticPlaylistLike != null && session.data!) {
-        if (
-          optimisticPlaylistLike.playlist.likes &&
-          optimisticPlaylistLike.playlist.likes.length > 0
-        ) {
-          // liked
-          optimisticPlaylistLike.playlist._count.likes--;
-          optimisticPlaylistLike.playlist.likes = [];
-        } else {
-          optimisticPlaylistLike.playlist._count.likes++;
+        if (optimisticPlaylistLike != null && session.data!) {
+          if (
+            optimisticPlaylistLike.playlist.likes &&
+            optimisticPlaylistLike.playlist.likes.length > 0
+          ) {
+            // liked
+            optimisticPlaylistLike.playlist._count.likes--;
+            optimisticPlaylistLike.playlist.likes = [];
+          } else {
+            optimisticPlaylistLike.playlist._count.likes++;
 
-          optimisticPlaylistLike.playlist.likes = [
-            {
-              playlistId: optimisticPlaylistLike.playlist?.id,
-              userId: session.data.user.id,
-            },
-          ];
+            optimisticPlaylistLike.playlist.likes = [
+              {
+                playlistId: optimisticPlaylistLike.playlist?.id,
+                userId: session.data.user.id,
+              },
+            ];
+          }
+
+          // Optimistically update the data with our new post
+          utils.playlist.getPlaylist.setData(
+            { playlistId: optimisticPlaylistLike.playlist.id },
+            (old) => optimisticPlaylistLike ?? old
+          ); // Use updater function
         }
+        // Return the previous data so we can revert if something goes wrong
 
-        // Optimistically update the data with our new post
+        return { prevData };
+      },
+      onError(err, newPlaylist, ctx) {
+        // If the mutation fails, use the context-value from onMutate
         utils.playlist.getPlaylist.setData(
-          { playlistId: optimisticPlaylistLike.playlist.id },
-          (old) => optimisticPlaylistLike ?? old
-        ); // Use updater function
-      }
-      // Return the previous data so we can revert if something goes wrong
-
-      return { prevData };
-    },
-    onError(err, newPlaylist, ctx) {
-      // If the mutation fails, use the context-value from onMutate
-      utils.playlist.getPlaylist.setData(
-        { playlistId: newPlaylist.playlistId },
-        (old) => ctx?.prevData ?? old
-      );
-    },
-    onSettled() {
-      // Sync with server once mutation has settled
-      void utils.playlist.getPlaylist.invalidate();
-    },
-  });
+          { playlistId: newPlaylist.playlistId },
+          (old) => ctx?.prevData ?? old
+        );
+      },
+      onSettled() {
+        // Sync with server once mutation has settled
+        void utils.playlist.getPlaylist.invalidate();
+      },
+    });
 
   if (getPlaylist.status === "loading" || getPlaylist.data == null)
     return <p>Loading...</p>;
@@ -116,7 +119,13 @@ export default function PlaylistPage() {
             <Button>Edit</Button>
           </Link>
         )}
-        <Button className="group bg-[#1DB954] text-foreground hover:text-primary-foreground">
+        <Button
+          onClick={() => {
+            addToSpotify({ playlistId: getPlaylist.data?.playlist.id });
+          }}
+          disabled={isLoadingAddToSpotify}
+          className="group bg-[#1DB954] text-foreground hover:text-primary-foreground"
+        >
           Add to Spotify
           <svg
             className="ml-2 h-8 group-hover:fill-[#1DB954]"
@@ -137,8 +146,8 @@ export default function PlaylistPage() {
           >
             <HeartIcon
               onClick={() =>
-                !isLoading &&
-                mutate({ playlistId: getPlaylist.data.playlist.id })
+                !isLoadingLike &&
+                likeMutate({ playlistId: getPlaylist.data.playlist.id })
               }
               color={"darkred"}
               fill={"red"}
@@ -146,8 +155,8 @@ export default function PlaylistPage() {
             />
             <HeartCrackIcon
               onClick={() =>
-                !isLoading &&
-                mutate({ playlistId: getPlaylist.data.playlist.id })
+                !isLoadingLike &&
+                likeMutate({ playlistId: getPlaylist.data.playlist.id })
               }
               color="darkred"
               fill={"red"}
@@ -161,8 +170,8 @@ export default function PlaylistPage() {
           <div className={`flex gap-2`}>
             <HeartIcon
               onClick={() =>
-                !isLoading &&
-                mutate({ playlistId: getPlaylist.data.playlist.id })
+                !isLoadingLike &&
+                likeMutate({ playlistId: getPlaylist.data.playlist.id })
               }
               className="cursor-pointer"
             />
