@@ -1,12 +1,41 @@
 import { type MaxInt } from "@spotify/web-api-ts-sdk";
 import { z } from "zod";
-import { createTRPCRouter, spotifyProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  spotifyProcedure,
+  playlistSpotifyReadProcedure,
+} from "~/server/api/trpc";
 import { type Artist, type Track } from "~/utils/spotifyTypes";
 
 export const spotifyRouter = createTRPCRouter({
   getMe: spotifyProcedure.query(async ({ ctx }) => {
     return ctx.spotifySdk.currentUser.profile();
   }),
+
+  addPlaylistToSpotify: playlistSpotifyReadProcedure.mutation(
+    async ({ ctx }) => {
+      const spotifyPlatlist = await ctx.spotifySdk.playlists.createPlaylist(
+        (
+          await ctx.spotifySdk.currentUser.profile()
+        ).id,
+        {
+          name: ctx.playlist.name,
+          description: ctx.playlist.description ?? undefined,
+          public: ctx.playlist.readPrivacy === "public",
+        }
+      );
+      const tracks = ctx.playlist.tracks;
+      const spotifyTracks = tracks.map(
+        (track) => `spotify:track:${track.spotifyId}`
+      );
+      console.log(spotifyTracks);
+      await ctx.spotifySdk.playlists.addItemsToPlaylist(
+        spotifyPlatlist.id,
+        spotifyTracks
+      );
+      return spotifyPlatlist;
+    }
+  ),
   getSongSearch: spotifyProcedure
     .input(
       z.object({ name: z.string(), resultNumber: z.number().min(0).max(50) })
