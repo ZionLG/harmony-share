@@ -133,12 +133,33 @@ export const playlistRouter = createTRPCRouter({
         },
       });
       if (playlistTracks === null) {
+        const playlist = await ctx.prisma.playlist.findUnique({
+          where: { id: ctx.playlist.id },
+          include: {
+            _count: {
+              select: {
+                tracks: true,
+              },
+            },
+          },
+        });
+        if (playlist === null) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Playlist not found.",
+          });
+        }
         const addTrack = await ctx.prisma.playlist.update({
           where: {
             id: ctx.playlist.id,
           },
           data: {
-            tracks: { create: { spotifyId: trackId } },
+            tracks: {
+              create: {
+                spotifyId: trackId,
+                position: playlist._count.tracks + 1,
+              },
+            },
           },
         });
         return addTrack;
