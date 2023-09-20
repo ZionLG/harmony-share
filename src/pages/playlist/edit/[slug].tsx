@@ -98,7 +98,7 @@ export default function PlaylistEditPage() {
             </TableHeader>
 
             <TableBody>
-              {getPlaylist.data?.playlist.tracks.map((track, i) => {
+              {getPlaylist.data?.playlist.tracks.map((track) => {
                 return (
                   <Track
                     isEditTrack={true}
@@ -106,7 +106,7 @@ export default function PlaylistEditPage() {
                     audioState={audioState}
                     key={track.id}
                     track={track}
-                    index={i + 1}
+                    index={track.position}
                   />
                 );
               })}

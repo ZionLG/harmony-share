@@ -38,11 +38,11 @@ const SpotifyTrack = ({
 
   return (
     <div className="group flex cursor-pointer items-center p-2">
-      <div
-        onClick={() => handleOnSelect(track.id)}
-        className="flex grow items-center justify-between  rounded-md p-2 group-hover:bg-secondary"
-      >
-        <div className="flex w-5/6 shrink items-center gap-3">
+      <div className="flex grow items-center justify-between  rounded-md p-2 group-hover:bg-secondary">
+        <div
+          onClick={() => handleOnSelect(track.id)}
+          className="flex w-5/6 shrink items-center gap-3"
+        >
           <span className="text-sm ">
             {millisToMinutesAndSeconds(track.duration_ms)}
           </span>

@@ -28,7 +28,6 @@ export default function useAudio({ url, playOnLoad = false }: useAudioType) {
 
   useEffect(() => {
     if (urlState) {
-      //console.log("urlState", urlState);
       setAudio(new Audio(urlState));
     } else {
       setAudio(null);
@@ -46,6 +45,7 @@ export default function useAudio({ url, playOnLoad = false }: useAudioType) {
     if (audio) {
       audio.pause();
       setStatus("paused");
+      setUrlState("");
     }
   }, [audio]);
 

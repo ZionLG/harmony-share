@@ -198,14 +198,14 @@ export default function PlaylistPage() {
             </TableHeader>
 
             <TableBody>
-              {getPlaylist.data?.playlist.tracks.map((track, i) => {
+              {getPlaylist.data?.playlist.tracks.map((track) => {
                 return (
                   <Track
                     playlistId={router.query.slug as string}
                     audioState={audioState}
                     key={track.id}
                     track={track}
-                    index={i + 1}
+                    index={track.position}
                   />
                 );
               })}
