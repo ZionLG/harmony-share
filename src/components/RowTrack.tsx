@@ -32,7 +32,11 @@ const Track = ({
     });
   if (!getTrack.data) return null;
   return (
-    <TableRow className=" group items-center gap-3 p-3">
+    <TableRow
+      className=" group items-center gap-3 p-3"
+      draggable
+      onDragStart={(e, i) => console.log(e, i)}
+    >
       <TableCell>{index}</TableCell>
       <TableCell className="flex items-center gap-3">
         {getTrack.data.albumCover && (

@@ -45,7 +45,7 @@ import { type UseTRPCQueryResult } from "@trpc/react-query/shared";
 import { type inferRouterOutputs } from "@trpc/server";
 import { type AppRouter } from "~/server/api/root";
 import { type TRPCClientErrorLike } from "@trpc/react-query";
-import { ScrollArea } from "./ui/scroll-area";
+import { VerticalScrollArea } from "./ui/scroll-area";
 
 type playlistOutputData = UseTRPCQueryResult<
   inferRouterOutputs<AppRouter>["playlist"]["getPlaylist"],
@@ -266,7 +266,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
           </Form>
           <Separator orientation="vertical" />
           <div className="flex flex-col items-center gap-5">
-            <ScrollArea className="h-24 w-fit min-w-[12rem] rounded-md border">
+            <VerticalScrollArea className="h-24 w-fit min-w-[12rem] rounded-md border">
               <div className="p-4">
                 <h4 className="mb-4 text-sm font-medium leading-none">
                   Collaborators
@@ -326,7 +326,7 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
                   );
                 })}
               </div>
-            </ScrollArea>
+            </VerticalScrollArea>
             <UserSearch
               playlistId={playlist.playlist.id}
               onClickResult={(userId) => {

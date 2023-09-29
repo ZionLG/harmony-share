@@ -235,7 +235,7 @@ export const playlistReadProcedure = protectedProcedure
     const playlistReq = ctx.prisma.playlist.findUnique({
       where: { id: input.playlistId },
       include: {
-        tracks: true,
+        tracks: { orderBy: { position: "asc" } },
         collaborators: {
           select: {
             id: true,
@@ -286,6 +286,11 @@ export const playlistEditProcedure = protectedProcedure
     const playlistReq = ctx.prisma.playlist.findUnique({
       where: { id: input.playlistId },
       include: {
+        _count: {
+          select: {
+            tracks: true,
+          },
+        },
         collaborators: {
           select: {
             id: true,
