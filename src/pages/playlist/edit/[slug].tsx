@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PlaylistHeader from "~/components/PlaylistHeader";
 import Track from "~/components/RowTrack";
 import TrackSearch from "~/components/TrackSearch";
@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
 import dynamic from "next/dynamic";
+import { Button, Input } from "@nextui-org/react";
 
 const DynamicPlaylistEdit = dynamic(
   () => import("~/components/PlaylistEditDetailsDialog"),
@@ -36,6 +37,16 @@ export default function PlaylistEditPage() {
     },
     { enabled: router.query.slug != null }
   );
+  const [position, setPosition] = useState(undefined as undefined | number);
+  const [trackId, setTrackId] = useState("");
+
+  const utils = api.useContext();
+
+  const { mutate, isLoading } = api.playlist.changeTrackPosition.useMutation({
+    onSuccess: () => {
+      void utils.playlist.getPlaylist.invalidate();
+    },
+  });
   useEffect(() => {
     if (session.status === "unauthenticated") void router.push("/");
     const ownerOrPublicOrCollabWrite =
@@ -80,6 +91,32 @@ export default function PlaylistEditPage() {
         </div>
       )}
       <Separator className="my-5" />
+      <div>
+        <Input
+          type="number"
+          value={Number(position)}
+          onChange={(e) => {
+            setPosition(Number(e.target.value));
+          }}
+        />
+        <Input
+          value={trackId}
+          onChange={(e) => {
+            setTrackId(e.target.value);
+          }}
+        />
+        <Button
+          onClick={() => {
+            mutate({
+              newPosition: Number(position),
+              playlistId: getPlaylist.data.playlist.id,
+              trackId: trackId,
+            });
+          }}
+        >
+          Change Position
+        </Button>
+      </div>
       <div className=" container flex justify-around ">
         <TrackSearch
           playlistId={router.query.slug as string}

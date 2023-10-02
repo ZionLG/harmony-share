@@ -30,7 +30,7 @@ const SpotifyTrack = ({
     try {
       audioState.pause();
       setSearchTerm("");
-      mutate({ trackId, playlistId });
+      mutate({ trackId, playlistId, position: 2 });
     } catch (error) {
       console.error(error);
     }

@@ -28,16 +28,13 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { VerticalScrollArea } from "~/components/ui/scroll-area";
+
 import { detailsFormSchema, PrivacyEnum } from "~/utils/formSchemas";
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/utils/api";
 import { AlertCircle } from "lucide-react";
+import { Tooltip } from "@nextui-org/react";
 
 const PlaylistCreationDialog = () => {
   const form = useForm<z.infer<typeof detailsFormSchema>>({
@@ -79,7 +76,7 @@ const PlaylistCreationDialog = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Create Playlist</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[425px] md:w-fit md:max-w-none">
         <DialogHeader>
           <DialogTitle>Create Playist</DialogTitle>
           <DialogDescription>
@@ -87,126 +84,131 @@ const PlaylistCreationDialog = () => {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={onSubmit} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is your playlist display name.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is your playlist description.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="readPrivacy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Read Privacy</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={PrivacyEnum.enum.private}>
-                        Private
-                      </SelectItem>
-                      <SelectItem value={PrivacyEnum.enum.public}>
-                        Public
-                      </SelectItem>
-                      <SelectItem value={PrivacyEnum.enum.invite}>
-                        Invite-Only
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    This is your playlist read privacy setting. It determines
-                    who can view your playlist.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="writePrivacy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Write Privacy</FormLabel>
-                  <div className="flex items-center gap-3">
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={PrivacyEnum.enum.private}>
-                          Private
-                        </SelectItem>
-                        <SelectItem value={PrivacyEnum.enum.public}>
-                          Public
-                        </SelectItem>
-                        <SelectItem value={PrivacyEnum.enum.invite}>
-                          Invite-Only
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {form.getValues("writePrivacy") === "public" && (
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <AlertCircle color="#ebce3d" size={28} />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              This allows any registered user to add and remove
-                              tracks from your playlist.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+          <form onSubmit={onSubmit} className="h-fit space-y-8">
+            <VerticalScrollArea className="h-96 md:h-fit">
+              <div className="flex flex-col gap-10 pr-4 md:flex-row">
+                <div className="flex  min-w-[14rem] max-w-[425px] flex-col gap-7">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          This is your playlist display name.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                  <FormDescription>
-                    This is your playlist write privacy setting. It determines
-                    who can edit your playlist.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          This is your playlist description.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex w-[16rem] flex-col gap-7">
+                  <FormField
+                    control={form.control}
+                    name="readPrivacy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Read Privacy</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={PrivacyEnum.enum.private}>
+                              Private
+                            </SelectItem>
+                            <SelectItem value={PrivacyEnum.enum.public}>
+                              Public
+                            </SelectItem>
+                            <SelectItem value={PrivacyEnum.enum.invite}>
+                              Invite-Only
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          This is your playlist read privacy setting. It
+                          determines who can view your playlist.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="writePrivacy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Write Privacy</FormLabel>
+                        <div className="flex items-center gap-3">
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={PrivacyEnum.enum.private}>
+                                Private
+                              </SelectItem>
+                              <SelectItem value={PrivacyEnum.enum.public}>
+                                Public
+                              </SelectItem>
+                              <SelectItem value={PrivacyEnum.enum.invite}>
+                                Invite-Only
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {form.getValues("writePrivacy") === "public" && (
+                            <Tooltip
+                              color={"warning"}
+                              content={
+                                "This allows any registered user to add and remove tracks from your playlist."
+                              }
+                              showArrow={true}
+                            >
+                              <AlertCircle color="#ebce3d" size={28} />
+                            </Tooltip>
+                          )}
+                        </div>
+                        <FormDescription>
+                          This is your playlist write privacy setting. It
+                          determines who can edit your playlist.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </VerticalScrollArea>
             <Button disabled={isLoading} type="submit">
               Create
             </Button>
