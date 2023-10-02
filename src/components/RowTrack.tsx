@@ -6,6 +6,7 @@ import { TableCell, TableRow } from "~/components/ui/table";
 import { millisToMinutesAndSeconds } from "~/utils/helperFunctions";
 import type { useAudioReturnType } from "~/utils/useAudio";
 import { Pause, Play, X } from "lucide-react";
+import { Draggable } from "@hello-pangea/dnd";
 
 type TrackProps = {
   track: Track;
@@ -31,12 +32,9 @@ const Track = ({
       onSuccess: () => utils.playlist.getPlaylist.invalidate(),
     });
   if (!getTrack.data) return null;
-  return (
-    <TableRow
-      className=" group items-center gap-3 p-3"
-      draggable
-      onDragStart={(e, i) => console.log(e, i)}
-    >
+
+  const rowData = (
+    <>
       <TableCell>{index}</TableCell>
       <TableCell className="flex items-center gap-3">
         {getTrack.data.albumCover && (
@@ -112,7 +110,29 @@ const Track = ({
           />
         </TableCell>
       )}
-    </TableRow>
+    </>
+  );
+  if (isEditTrack)
+    return (
+      <Draggable key={track.id} draggableId={track.id} index={index}>
+        {(provided, snapshot) => {
+          return (
+            <TableRow
+              className={`group items-center  gap-3 p-3 ${
+                snapshot.isDragging ? "table border-b-0" : ""
+              }`}
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
+            >
+              {rowData}
+            </TableRow>
+          );
+        }}
+      </Draggable>
+    );
+  return (
+    <TableRow className=" group items-center gap-3 p-3">{rowData}</TableRow>
   );
 };
 
