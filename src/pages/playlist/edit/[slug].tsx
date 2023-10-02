@@ -1,11 +1,18 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PlaylistHeader from "~/components/PlaylistHeader";
 import Track from "~/components/RowTrack";
 import TrackSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
+import {
+  DragDropContext,
+  Droppable,
+  type DropResult,
+  type ResponderProvided,
+} from "@hello-pangea/dnd";
+
 import {
   Table,
   TableBody,
@@ -15,7 +22,6 @@ import {
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
 import dynamic from "next/dynamic";
-import { Button, Input } from "@nextui-org/react";
 
 const DynamicPlaylistEdit = dynamic(
   () => import("~/components/PlaylistEditDetailsDialog"),
@@ -37,8 +43,6 @@ export default function PlaylistEditPage() {
     },
     { enabled: router.query.slug != null }
   );
-  const [position, setPosition] = useState(undefined as undefined | number);
-  const [trackId, setTrackId] = useState("");
 
   const utils = api.useContext();
 
@@ -68,6 +72,17 @@ export default function PlaylistEditPage() {
     if (getPlaylist.status === "error") void router.push("/");
   }, [getPlaylist.status, router]);
 
+  const onDragEnd = (result: DropResult, provided: ResponderProvided) => {
+    if (result.destination?.index === result.source.index) return;
+    if (result.destination) {
+      mutate({
+        trackId: result.draggableId,
+        newPosition: result.destination.index,
+        playlistId: router.query.slug as string,
+      });
+    }
+    console.log(result, provided);
+  };
   if (getPlaylist.status === "loading" || getPlaylist.data == null)
     return <p>Loading...</p>;
   return (
@@ -91,64 +106,48 @@ export default function PlaylistEditPage() {
         </div>
       )}
       <Separator className="my-5" />
-      <div>
-        <Input
-          type="number"
-          value={Number(position)}
-          onChange={(e) => {
-            setPosition(Number(e.target.value));
-          }}
-        />
-        <Input
-          value={trackId}
-          onChange={(e) => {
-            setTrackId(e.target.value);
-          }}
-        />
-        <Button
-          onClick={() => {
-            mutate({
-              newPosition: Number(position),
-              playlistId: getPlaylist.data.playlist.id,
-              trackId: trackId,
-            });
-          }}
-        >
-          Change Position
-        </Button>
-      </div>
+
       <div className=" container flex justify-around ">
         <TrackSearch
           playlistId={router.query.slug as string}
           audioState={audioState}
         />
         <div className="p-5">
-          <Table className=" text-lg">
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Preview</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {getPlaylist.data?.playlist.tracks.map((track) => {
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => {
                 return (
-                  <Track
-                    isEditTrack={true}
-                    playlistId={router.query.slug as string}
-                    audioState={audioState}
-                    key={track.id}
-                    track={track}
-                    index={track.position}
-                  />
+                  <Table className=" text-lg" ref={provided.innerRef}>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Preview</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {getPlaylist.data?.playlist.tracks.map((track) => {
+                        return (
+                          <Track
+                            isEditTrack={true}
+                            playlistId={router.query.slug as string}
+                            audioState={audioState}
+                            key={track.id}
+                            track={track}
+                            index={track.position}
+                          />
+                        );
+                      })}
+                      {provided.placeholder}
+                    </TableBody>
+                  </Table>
                 );
-              })}
-            </TableBody>
-          </Table>
+              }}
+            </Droppable>
+          </DragDropContext>
         </div>
       </div>
     </main>
