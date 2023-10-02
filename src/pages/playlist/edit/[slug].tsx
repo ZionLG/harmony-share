@@ -7,6 +7,13 @@ import TrackSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 import {
+  DragDropContext,
+  Droppable,
+  type DropResult,
+  type ResponderProvided,
+} from "@hello-pangea/dnd";
+
+import {
   Table,
   TableBody,
   TableHead,
@@ -36,6 +43,14 @@ export default function PlaylistEditPage() {
     },
     { enabled: router.query.slug != null }
   );
+
+  const utils = api.useContext();
+
+  const { mutate, isLoading } = api.playlist.changeTrackPosition.useMutation({
+    onSuccess: () => {
+      void utils.playlist.getPlaylist.invalidate();
+    },
+  });
   useEffect(() => {
     if (session.status === "unauthenticated") void router.push("/");
     const ownerOrPublicOrCollabWrite =
@@ -57,6 +72,17 @@ export default function PlaylistEditPage() {
     if (getPlaylist.status === "error") void router.push("/");
   }, [getPlaylist.status, router]);
 
+  const onDragEnd = (result: DropResult, provided: ResponderProvided) => {
+    if (result.destination?.index === result.source.index) return;
+    if (result.destination) {
+      mutate({
+        trackId: result.draggableId,
+        newPosition: result.destination.index,
+        playlistId: router.query.slug as string,
+      });
+    }
+    console.log(result, provided);
+  };
   if (getPlaylist.status === "loading" || getPlaylist.data == null)
     return <p>Loading...</p>;
   return (
@@ -80,38 +106,48 @@ export default function PlaylistEditPage() {
         </div>
       )}
       <Separator className="my-5" />
+
       <div className=" container flex justify-around ">
         <TrackSearch
           playlistId={router.query.slug as string}
           audioState={audioState}
         />
         <div className="p-5">
-          <Table className=" text-lg">
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Preview</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {getPlaylist.data?.playlist.tracks.map((track) => {
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => {
                 return (
-                  <Track
-                    isEditTrack={true}
-                    playlistId={router.query.slug as string}
-                    audioState={audioState}
-                    key={track.id}
-                    track={track}
-                    index={track.position}
-                  />
+                  <Table className=" text-lg" ref={provided.innerRef}>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Preview</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {getPlaylist.data?.playlist.tracks.map((track) => {
+                        return (
+                          <Track
+                            isEditTrack={true}
+                            playlistId={router.query.slug as string}
+                            audioState={audioState}
+                            key={track.id}
+                            track={track}
+                            index={track.position}
+                          />
+                        );
+                      })}
+                      {provided.placeholder}
+                    </TableBody>
+                  </Table>
                 );
-              })}
-            </TableBody>
-          </Table>
+              }}
+            </Droppable>
+          </DragDropContext>
         </div>
       </div>
     </main>

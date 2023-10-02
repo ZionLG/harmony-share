@@ -34,15 +34,8 @@ type PlaylistCardProps = {
       };
     }[];
   };
-  cardGroup?: string;
-  width?: number;
 };
-const PlaylistCard = ({
-  query,
-  playlist,
-  cardGroup,
-  width,
-}: PlaylistCardProps) => {
+const PlaylistCard = ({ query, playlist }: PlaylistCardProps) => {
   const router = useRouter();
 
   const { mutate: deleteMutate, isLoading: deleteIsLoading } =
@@ -50,12 +43,9 @@ const PlaylistCard = ({
   return (
     <Card
       key={playlist.id}
-      style={{
-        width: `${width ? `${width}px` : "fit-content"}`,
-      }}
-      className={`${
-        cardGroup ? `playlist-card-${cardGroup}` : ""
-      } flex min-w-fit  flex-col justify-between `}
+      className={`
+      
+       flex min-w-fit  flex-col justify-between `}
     >
       <CardHeader>
         <CardTitle>

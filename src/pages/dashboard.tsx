@@ -7,6 +7,7 @@ import PlaylistCards from "~/components/PlaylistCards";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import { Tabs, Tab } from "@nextui-org/react";
 
 const DynamicPlaylistCreator = dynamic(
   () => import("~/components/PlaylistCreationDialog"),
@@ -14,8 +15,12 @@ const DynamicPlaylistCreator = dynamic(
     loading: () => <p>Loading...</p>,
   }
 );
+type DashboardTabs = "owned" | "collaboration" | "spotify_import";
 const Dashboard = () => {
+  const [selected, setSelected] = React.useState("owned" as DashboardTabs);
+
   const getOwnedPlaylists = api.playlist.getOwned.useQuery();
+  const getCollabPlaylists = api.playlist.getCollaborated.useQuery();
   const router = useRouter();
   const session = useSession();
 
@@ -42,17 +47,23 @@ const Dashboard = () => {
           <Separator className="my-4 h-1" />
         </div>
         <div className="flex flex-col gap-10">
+          <Tabs
+            variant={"underlined"}
+            selectedKey={selected}
+            onSelectionChange={(key) => {
+              setSelected(key as DashboardTabs);
+            }}
+          >
+            <Tab key="owned" title="Owned Playlists">
+              <PlaylistCards query={getOwnedPlaylists} />
+            </Tab>
+            <Tab key="collaboration" title="Collaboration Playlists">
+              <PlaylistCards query={getCollabPlaylists} />
+            </Tab>
+          </Tabs>
+
           <div>
-            <span className="text-2xl font-semibold text-primary">
-              Owned Playlists
-            </span>
-            <Separator className="my-4" />
-            <PlaylistCards query={getOwnedPlaylists} />
-          </div>
-          <div>
-            <span className="text-2xl font-semibold text-primary">
-              Collaboration Playlists
-            </span>
+            <span className="text-2xl font-semibold text-primary"></span>
             <Separator className="my-4" />
           </div>
         </div>

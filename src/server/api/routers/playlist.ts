@@ -120,12 +120,104 @@ export const playlistRouter = createTRPCRouter({
   }),
 
   getCollaborated: protectedProcedure.query(({ ctx }) => {
-    return ctx.prisma.playlist.findMany({});
+    return ctx.prisma.playlist.findMany({
+      where: {
+        collaborators: {
+          some: { userId: ctx.session.user.id },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        description: true,
+        readPrivacy: true,
+        writePrivacy: true,
+        createdAt: true,
+        updatedAt: true,
+        collaborators: {
+          select: {
+            user: {
+              select: {
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }),
+  changeTrackPosition: playlistEditProcedure
+    .input(z.object({ trackId: z.string(), newPosition: z.number() }))
+    .mutation(async ({ input: { trackId, newPosition }, ctx }) => {
+      if (newPosition < 1 || newPosition > ctx.playlist._count.tracks) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "track position must be between 1 to length of playlist",
+        });
+      }
+      const track = await ctx.prisma.track.findUnique({
+        where: {
+          id: trackId,
+        },
+      });
 
+      if (track === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "track doesn't exist.",
+        });
+      }
+
+      const trackCurrentPosition = track.position;
+
+      if (trackCurrentPosition < newPosition) {
+        const [affectedTracks, mainTrack] = await ctx.prisma.$transaction([
+          ctx.prisma.track.updateMany({
+            where: {
+              playlistId: ctx.playlist.id,
+              position: { gt: trackCurrentPosition, lte: newPosition },
+            },
+            data: {
+              position: { decrement: 1 },
+            },
+          }),
+          ctx.prisma.track.update({
+            where: {
+              id: trackId,
+            },
+            data: {
+              position: newPosition,
+            },
+          }),
+        ]);
+        return { affectedTracks, mainTrack };
+      } else if (trackCurrentPosition > newPosition) {
+        const [affectedTracks, mainTrack] = await ctx.prisma.$transaction([
+          ctx.prisma.track.updateMany({
+            where: {
+              playlistId: ctx.playlist.id,
+              position: { gte: newPosition, lt: trackCurrentPosition },
+            },
+            data: {
+              position: { increment: 1 },
+            },
+          }),
+          ctx.prisma.track.update({
+            where: {
+              id: trackId,
+            },
+            data: {
+              position: newPosition,
+            },
+          }),
+        ]);
+        return { affectedTracks, mainTrack };
+      }
+    }),
   addTrack: playlistEditProcedure
-    .input(z.object({ trackId: z.string() }))
-    .mutation(async ({ input: { trackId }, ctx }) => {
+    .input(z.object({ trackId: z.string(), position: z.number().optional() }))
+    .mutation(async ({ input: { trackId, position }, ctx }) => {
       const playlistTracks = await ctx.prisma.playlist.findUnique({
         where: {
           id: ctx.playlist.id,
@@ -149,6 +241,36 @@ export const playlistRouter = createTRPCRouter({
             message: "Playlist not found.",
           });
         }
+        if (position) {
+          const [updatePositions, insertedTrack] =
+            await ctx.prisma.$transaction([
+              ctx.prisma.track.updateMany({
+                where: {
+                  playlistId: ctx.playlist.id,
+                  position: { gte: position },
+                },
+                data: {
+                  position: { increment: 1 },
+                },
+              }),
+              ctx.prisma.playlist.update({
+                where: {
+                  id: ctx.playlist.id,
+                },
+                data: {
+                  tracks: {
+                    create: {
+                      spotifyId: trackId,
+                      position: position,
+                    },
+                  },
+                },
+              }),
+            ]);
+
+          return { updatePositions, insertedTrack };
+        }
+
         const addTrack = await ctx.prisma.playlist.update({
           where: {
             id: ctx.playlist.id,
