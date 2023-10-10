@@ -37,7 +37,14 @@ const Header = () => {
   );
   return (
     <>
-      <header className=" top-0 z-50 flex flex-col items-center gap-5 bg-background p-5 text-foreground md:sticky md:flex-row  md:gap-0">
+      <div className="pt-4 text-center">
+        <span> Demo Spotify account</span>
+        <div className="mt-2 flex justify-center gap-5">
+          <span>Username: 315a7fcxer7mif2wtkwiphe45tqm</span>
+          <span>Password: HarmonyTest123!</span>
+        </div>
+      </div>
+      <header className=" top-0 z-50 flex flex-col items-center gap-5 bg-background px-5 text-foreground md:sticky md:flex-row  md:gap-0">
         <div>
           <span className="mr-5 text-3xl tracking-widest">Harmony Share</span>
           <ThemeToggle />
