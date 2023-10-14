@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { Tabs, Tab } from "@nextui-org/react";
+import SpotifyPlaylists from "~/components/SpotifyPlaylists";
 
 const DynamicPlaylistCreator = dynamic(
   () => import("~/components/PlaylistCreationDialog"),
@@ -59,6 +60,9 @@ const Dashboard = () => {
             </Tab>
             <Tab key="collaboration" title="Collaboration Playlists">
               <PlaylistCards query={getCollabPlaylists} />
+            </Tab>
+            <Tab key="spotify_import" title="Spotify Playlists">
+              <SpotifyPlaylists />
             </Tab>
           </Tabs>
 

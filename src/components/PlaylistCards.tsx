@@ -26,13 +26,11 @@ type PlaylistCardsProps = {
 };
 const PlaylistCards = ({ query }: PlaylistCardsProps) => {
   return (
-    <HorizontalScrollArea className="h-72 w-full  ">
-      <div className="flex h-auto gap-5">
-        {query.data?.map((playlist) => (
-          <PlaylistCard playlist={playlist} query={query} key={playlist.id} />
-        ))}
-      </div>
-    </HorizontalScrollArea>
+    <div className=" grid h-auto  min-w-max max-w-max grid-cols-1 gap-5   lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4">
+      {query.data?.map((playlist) => (
+        <PlaylistCard playlist={playlist} query={query} key={playlist.id} />
+      ))}
+    </div>
   );
 };
 

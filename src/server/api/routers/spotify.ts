@@ -11,7 +11,9 @@ export const spotifyRouter = createTRPCRouter({
   getMe: spotifyProcedure.query(async ({ ctx }) => {
     return ctx.spotifySdk.currentUser.profile();
   }),
-
+  getUserPlaylists: spotifyProcedure.query(async ({ ctx }) => {
+    return ctx.spotifySdk.currentUser.playlists.playlists(50);
+  }),
   addPlaylistToSpotify: playlistSpotifyReadProcedure.mutation(
     async ({ ctx }) => {
       const spotifyPlatlist = await ctx.spotifySdk.playlists.createPlaylist(

@@ -127,7 +127,7 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope:
-            "user-read-private user-read-email playlist-modify-public playlist-modify-private",
+            "user-read-private user-read-email playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative",
         },
       },
       clientId: env.SPOTIFY_CLIENT_ID,

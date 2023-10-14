@@ -16,6 +16,7 @@ const config = {
         hostname: "via.placeholder.com",
       },
       { hostname: "i.scdn.co" },
+      { hostname: "mosaic.scdn.co" },
     ],
   },
   /**
