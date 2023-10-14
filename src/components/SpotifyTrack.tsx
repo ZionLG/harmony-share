@@ -34,12 +34,11 @@ const SpotifyTrack = ({
       let position = tracks[tracks.length - 1]?.position ?? 0;
       tracks.push({
         AddedAt: new Date(),
-        id: "",
+        id: Date.now().toString(),
         playlistId: playlistId,
         position: ++position,
         spotifyId: data.trackId,
       });
-
       utils.playlist.getPlaylist.setData(
         { playlistId: optimisticPlaylist.playlist.id },
         (old) => optimisticPlaylist ?? old
@@ -76,7 +75,7 @@ const SpotifyTrack = ({
       <div className="flex grow items-center justify-between  rounded-md p-2 group-hover:bg-secondary">
         <div
           onClick={() => handleOnSelect(track.id)}
-          className="flex w-5/6 shrink items-center gap-3"
+          className="flex w-5/6 grow items-center gap-3"
         >
           <span className="text-sm ">
             {millisToMinutesAndSeconds(track.duration_ms)}
@@ -94,7 +93,7 @@ const SpotifyTrack = ({
             <a
               target="_blank"
               href={track.spotifyLink}
-              className="  hover:underline "
+              className=" w-fit  hover:underline "
             >
               {track.name}
             </a>
@@ -103,7 +102,7 @@ const SpotifyTrack = ({
                 target="_blank"
                 key={artist.id}
                 href={artist.spotifyLink}
-                className="text-xs  hover:underline"
+                className="w-fit text-xs hover:underline"
               >
                 {artist.name}
               </a>
