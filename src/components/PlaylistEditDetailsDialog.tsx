@@ -120,12 +120,12 @@ const PlaylistEditDetailsDialog = (playlist: playlistOutputData) => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="default" className="w-fit">
-          Edit Playlist
+          Edit Details
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Playist</DialogTitle>
+          <DialogTitle>Edit Details</DialogTitle>
           <DialogDescription>
             Edit a playlist. Click Edit when you&apos;re done.
           </DialogDescription>
