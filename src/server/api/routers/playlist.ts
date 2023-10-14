@@ -295,11 +295,37 @@ export const playlistRouter = createTRPCRouter({
   deleteSong: playlistEditProcedure
     .input(z.object({ trackId: z.string() }))
     .mutation(async ({ input: { trackId }, ctx }) => {
-      const playlistTrack = await ctx.prisma.track.delete({
-        where: { id: trackId },
+      const track = await ctx.prisma.track.findUnique({
+        where: {
+          id: trackId,
+        },
       });
 
-      return playlistTrack;
+      if (track === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "track doesn't exist.",
+        });
+      }
+
+      const trackCurrentPosition = track.position;
+      const [affectedTracks, deletedTrack] = await ctx.prisma.$transaction([
+        ctx.prisma.track.updateMany({
+          where: {
+            playlistId: ctx.playlist.id,
+            position: { gt: trackCurrentPosition },
+          },
+          data: {
+            position: { decrement: 1 },
+          },
+        }),
+        ctx.prisma.track.delete({
+          where: {
+            id: trackId,
+          },
+        }),
+      ]);
+      return { affectedTracks, deletedTrack };
     }),
   toggleLikePlaylist: playlistReadProcedure.mutation(async ({ ctx }) => {
     const data = {
