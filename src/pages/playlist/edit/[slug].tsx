@@ -8,10 +8,12 @@ import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 import {
   DragDropContext,
+  type DragUpdate,
   Droppable,
   type DropResult,
   type ResponderProvided,
 } from "@hello-pangea/dnd";
+import cloneObject from "lodash.clonedeep";
 
 import {
   Table,
@@ -47,7 +49,60 @@ export default function PlaylistEditPage() {
   const utils = api.useContext();
 
   const { mutate, isLoading } = api.playlist.changeTrackPosition.useMutation({
-    onSuccess: () => {
+    async onMutate(data) {
+      await utils.playlist.getPlaylist.cancel();
+
+      const prevData = utils.playlist.getPlaylist.getData({
+        playlistId: router.query.slug as string,
+      });
+      const optimisticPlaylist = cloneObject(prevData);
+      if (optimisticPlaylist === undefined) return;
+      const tracks = optimisticPlaylist.playlist.tracks;
+      const newPosition = data.newPosition;
+      const selectedTrack = tracks.find((d) => {
+        return d.id === data.trackId;
+      });
+
+      if (selectedTrack === undefined) return;
+
+      if (selectedTrack.position < newPosition) {
+        tracks.forEach((track) => {
+          if (
+            track.position > selectedTrack.position &&
+            track.position <= newPosition
+          ) {
+            track.position--;
+          }
+        });
+      } else if (selectedTrack.position > newPosition) {
+        tracks.forEach((track) => {
+          if (
+            track.position >= newPosition &&
+            track.position < selectedTrack.position
+          ) {
+            track.position++;
+          }
+        });
+      }
+      selectedTrack.position = newPosition;
+      tracks.sort(({ position: a }, { position: b }) => a - b);
+
+      utils.playlist.getPlaylist.setData(
+        { playlistId: optimisticPlaylist.playlist.id },
+        (old) => optimisticPlaylist ?? old
+      ); // Use updater function
+
+      return { prevData };
+    },
+    onError(err, newPlaylist, ctx) {
+      // If the mutation fails, use the context-value from onMutate
+      utils.playlist.getPlaylist.setData(
+        { playlistId: newPlaylist.playlistId },
+        (old) => ctx?.prevData ?? old
+      );
+    },
+    onSettled() {
+      // Sync with server once mutation has settled
       void utils.playlist.getPlaylist.invalidate();
     },
   });
@@ -74,7 +129,7 @@ export default function PlaylistEditPage() {
 
   const onDragEnd = (result: DropResult, provided: ResponderProvided) => {
     if (result.destination?.index === result.source.index) return;
-    if (result.destination) {
+    if (result.destination && !isLoading) {
       mutate({
         trackId: result.draggableId,
         newPosition: result.destination.index,
@@ -82,6 +137,50 @@ export default function PlaylistEditPage() {
       });
     }
     console.log(result, provided);
+  };
+  const onDragUpdate = (update: DragUpdate, provided: ResponderProvided) => {
+    if (isLoading) return;
+    console.log(update, provided);
+    const prevData = utils.playlist.getPlaylist.getData({
+      playlistId: router.query.slug as string,
+    });
+    const optimisticPlaylist = cloneObject(prevData);
+    if (optimisticPlaylist === undefined) return;
+    if (update.destination == undefined) return;
+    const tracks = optimisticPlaylist.playlist.tracks;
+    const newPosition = update.destination.index;
+    const selectedTrack = tracks.find((d) => {
+      return d.id === update.draggableId;
+    });
+
+    if (selectedTrack === undefined) return;
+
+    if (selectedTrack.position < newPosition) {
+      tracks.forEach((track) => {
+        if (
+          track.position > selectedTrack.position &&
+          track.position <= newPosition
+        ) {
+          track.position--;
+        }
+      });
+    } else if (selectedTrack.position > newPosition) {
+      tracks.forEach((track) => {
+        if (
+          track.position >= newPosition &&
+          track.position < selectedTrack.position
+        ) {
+          track.position++;
+        }
+      });
+    }
+    selectedTrack.position = newPosition;
+    tracks.sort(({ position: a }, { position: b }) => a - b);
+
+    utils.playlist.getPlaylist.setData(
+      { playlistId: optimisticPlaylist.playlist.id },
+      (old) => optimisticPlaylist ?? old
+    ); // Use updater function
   };
   if (getPlaylist.status === "loading" || getPlaylist.data == null)
     return <p>Loading...</p>;
@@ -113,7 +212,7 @@ export default function PlaylistEditPage() {
           audioState={audioState}
         />
         <div className="p-5">
-          <DragDropContext onDragEnd={onDragEnd}>
+          <DragDropContext onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
             <Droppable droppableId="droppable">
               {(provided, snapshot) => {
                 return (
@@ -138,6 +237,7 @@ export default function PlaylistEditPage() {
                             key={track.id}
                             track={track}
                             index={track.position}
+                            isDragDisabled={isLoading}
                           />
                         );
                       })}
