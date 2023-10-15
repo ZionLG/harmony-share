@@ -95,8 +95,8 @@ enum NotificationType {
 model LikePlaylist {
     userId     String
     playlistId String
-    User       User     @relation(fields: [userId], references: [id])
-    Playlist   Playlist @relation(fields: [playlistId], references: [id])
+    User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    Playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
 
     @@id([userId, playlistId])
     @@index([playlistId])

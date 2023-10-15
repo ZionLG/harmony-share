@@ -9,6 +9,9 @@ import {
 } from "./ui/card";
 import Image from "next/image";
 import { Button } from "./ui/button";
+import { api } from "~/utils/api";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { getInitials } from "~/utils/helperFunctions";
 
 type SpotifyPlaylistProps = {
   imageUrl: string; // 60x60
@@ -28,6 +31,7 @@ const SpotifyPlaylist = ({
   spotifyUrl,
   tracksCount,
 }: SpotifyPlaylistProps) => {
+  const { mutate, isLoading } = api.spotify.importSpotifyPlaylist.useMutation();
   return (
     <Card
       key={id}
@@ -37,13 +41,13 @@ const SpotifyPlaylist = ({
     >
       <CardHeader>
         <CardTitle className="flex gap-2">
-          <Image
-            alt="cover image"
-            src={imageUrl}
-            className="rounded-md border"
-            width={60}
-            height={60}
-          />
+          <Avatar className=" h-[60px] w-[60px] rounded-md ">
+            <AvatarImage src={imageUrl} />
+            <AvatarFallback className="rounded-md">
+              {getInitials(name)}
+            </AvatarFallback>
+          </Avatar>
+
           <div className="flex flex-col gap-2">
             <a target="_blank" href={spotifyUrl} className=" w-fit underline ">
               {name}
@@ -60,7 +64,14 @@ const SpotifyPlaylist = ({
       <CardContent>Track count: {tracksCount}</CardContent>
       <CardFooter className="flex justify-between gap-2">
         <Button>Preview</Button>
-        <Button variant={"positive"}>Import</Button>
+        <Button
+          variant={"positive"}
+          onClick={() => {
+            mutate({ spotifyPlaylistId: id });
+          }}
+        >
+          Import
+        </Button>
       </CardFooter>
     </Card>
   );

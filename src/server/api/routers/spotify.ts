@@ -1,4 +1,9 @@
-import { type MaxInt } from "@spotify/web-api-ts-sdk";
+import { Track as PrismaTrack } from "@prisma/client";
+import {
+  type Page,
+  type MaxInt,
+  type PlaylistedTrack,
+} from "@spotify/web-api-ts-sdk";
 import { z } from "zod";
 import {
   createTRPCRouter,
@@ -38,6 +43,59 @@ export const spotifyRouter = createTRPCRouter({
       return spotifyPlatlist;
     }
   ),
+  importSpotifyPlaylist: spotifyProcedure
+    .input(z.object({ spotifyPlaylistId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const playlist = await ctx.spotifySdk.playlists.getPlaylist(
+        input.spotifyPlaylistId,
+        ctx.session.user.spotifyMarket
+      );
+      const tracksPages = [] as Page<PlaylistedTrack>[];
+      let tracks = await ctx.spotifySdk.playlists.getPlaylistItems(
+        input.spotifyPlaylistId,
+        ctx.session.user.spotifyMarket,
+        undefined
+      );
+      tracksPages.push(tracks);
+
+      while (tracks.next) {
+        tracks = await ctx.spotifySdk.playlists.getPlaylistItems(
+          input.spotifyPlaylistId,
+          ctx.session.user.spotifyMarket,
+          undefined,
+          undefined,
+          tracks.offset + 100
+        );
+        tracksPages.push(tracks);
+      }
+      const trackItemsMerge = [] as PlaylistedTrack[];
+
+      tracksPages.forEach((item) => {
+        item.items.forEach((track) => trackItemsMerge.push(track));
+      });
+
+      const createdPlaylist = await ctx.prisma.playlist.create({
+        data: {
+          name: playlist.name,
+          readPrivacy: playlist.public ? "public" : "private",
+          writePrivacy: "private",
+          ownerId: ctx.session.user.id,
+          image: playlist.images[1]?.url,
+          description: playlist.description,
+          tracks: {
+            createMany: {
+              data: trackItemsMerge.map((track, i) => {
+                return {
+                  position: i + 1,
+                  spotifyId: track.track.id,
+                };
+              }),
+            },
+          },
+        },
+      });
+      return { createdPlaylist };
+    }),
   getSongSearch: spotifyProcedure
     .input(
       z.object({ name: z.string(), resultNumber: z.number().min(0).max(50) })
