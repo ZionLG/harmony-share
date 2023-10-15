@@ -25,9 +25,18 @@ const Track = ({
   isEditTrack = false,
   isDragDisabled = false,
 }: TrackProps) => {
-  const getTrack = api.spotify.getSongById.useQuery({
-    songId: track.spotifyId,
-  });
+  const getTrack = api.spotify.getSongById.useQuery(
+    {
+      songId: track.spotifyId,
+    },
+
+    {
+      cacheTime: 24 * 60 * (60 * 1000),
+      staleTime: 24 * 60 * (60 * 1000),
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
   const utils = api.useContext();
 
   const { mutate: deleteMutate, isLoading: deleteIsLoading } =
