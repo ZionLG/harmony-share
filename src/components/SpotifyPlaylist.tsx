@@ -41,9 +41,9 @@ const SpotifyPlaylist = ({
     >
       <CardHeader>
         <CardTitle className="flex gap-2">
-          <Avatar className=" h-[60px] w-[60px] rounded-md ">
+          <Avatar className=" h-[60px] w-[60px] rounded-md   ">
             <AvatarImage src={imageUrl} />
-            <AvatarFallback className="rounded-md">
+            <AvatarFallback className="rounded-md  ">
               {getInitials(name)}
             </AvatarFallback>
           </Avatar>
@@ -63,7 +63,6 @@ const SpotifyPlaylist = ({
       </CardHeader>
       <CardContent>Track count: {tracksCount}</CardContent>
       <CardFooter className="flex justify-between gap-2">
-        <Button>Preview</Button>
         <Button
           variant={"positive"}
           onClick={() => {

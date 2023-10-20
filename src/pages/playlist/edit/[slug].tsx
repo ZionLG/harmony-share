@@ -5,6 +5,7 @@ import PlaylistHeader from "~/components/PlaylistHeader";
 import Track from "~/components/RowTrack";
 import TrackSearch from "~/components/TrackSearch";
 import { Separator } from "~/components/ui/separator";
+import { ChevronLeft } from "lucide-react";
 import { api } from "~/utils/api";
 import {
   DragDropContext,
@@ -24,6 +25,9 @@ import {
 } from "~/components/ui/table";
 import useAudio from "~/utils/useAudio";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { cn } from "@nextui-org/react";
+import { buttonVariants } from "~/components/ui/button";
 
 const DynamicPlaylistEdit = dynamic(
   () => import("~/components/PlaylistEditDetailsDialog"),
@@ -196,14 +200,25 @@ export default function PlaylistEditPage() {
           name: getPlaylist.data.playlist.owner.name ?? "",
         }}
       />
-      {getPlaylist.data.playlist.ownerId === session.data?.user?.id && (
-        <div className="self-center">
-          <DynamicPlaylistEdit
-            playlist={getPlaylist.data.playlist}
-            isCollaborator={getPlaylist.data.isCollaborator}
-          />
-        </div>
-      )}
+      <div className="flex justify-center">
+        <Link
+          href={`/playlist/${router.query.slug as string}`}
+          className={`${cn(buttonVariants({ variant: "link" }))} `}
+        >
+          <div className="flex">
+            <ChevronLeft />
+            <span>Back To View</span>
+          </div>
+        </Link>
+        {getPlaylist.data.playlist.ownerId === session.data?.user?.id && (
+          <div>
+            <DynamicPlaylistEdit
+              playlist={getPlaylist.data.playlist}
+              isCollaborator={getPlaylist.data.isCollaborator}
+            />
+          </div>
+        )}
+      </div>
       <Separator className="my-5" />
 
       <div className=" container flex justify-around ">

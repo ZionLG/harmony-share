@@ -39,7 +39,9 @@ const AuthAvatar = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => void router.push("/profile")}>
+          <DropdownMenuItem
+            onClick={() => void router.push(`/user/${user.id}`)}
+          >
             Profile
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void router.push("/dashboard")}>

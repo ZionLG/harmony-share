@@ -50,9 +50,9 @@ const PlaylistCard = ({ query, playlist }: PlaylistCardProps) => {
       <CardHeader>
         <CardTitle>
           <div className="flex items-center gap-4">
-            <Avatar className="relative h-16 w-16 rounded-full ">
-              <AvatarImage src={playlist.image ?? ""} />
-              <AvatarFallback className="rounded-md">
+            <Avatar className="relative h-16 w-16  ">
+              <AvatarImage src={playlist.image ?? ""} className="rounded-md " />
+              <AvatarFallback className="rounded-md  ">
                 {getInitials(playlist.name)}
               </AvatarFallback>
             </Avatar>

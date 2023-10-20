@@ -49,6 +49,17 @@ model Session {
     @@index([userId])
 }
 
+model Quote {
+    id     String @id @default(cuid())
+    userId String @unique
+    User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    qouteBy   String
+    qouteData String
+
+    @@index([userId])
+}
+
 model User {
     id            String    @id @default(cuid())
     name          String?
@@ -65,6 +76,7 @@ model User {
     Collaborator   Collaborator[]
     notifications  Notification[]
     likedPlaylists LikePlaylist[]
+    Quote          Quote?
 }
 
 model Notification {

@@ -20,6 +20,7 @@ declare module "next-auth" {
     error?: "RefreshAccessTokenError";
     user: DefaultSession["user"] & {
       id: string;
+      providerId: string;
       // ...other properties
       // role: UserRole;
     };
@@ -115,7 +116,7 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-
+          providerId: spotify!.providerAccountId,
           id: user.id,
         },
       };

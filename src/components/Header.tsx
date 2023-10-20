@@ -21,7 +21,7 @@ const Header = () => {
         {session.status !== "authenticated" ? (
           <Button
             onClick={() =>
-              void signIn("spotify", { callbackUrl: "/dashboard" })
+              void signIn("spotify", { callbackUrl: "/first-steps" })
             }
           >
             Sign in

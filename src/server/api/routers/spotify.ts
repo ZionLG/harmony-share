@@ -16,6 +16,32 @@ export const spotifyRouter = createTRPCRouter({
   getMe: spotifyProcedure.query(async ({ ctx }) => {
     return ctx.spotifySdk.currentUser.profile();
   }),
+  getUserData: spotifyProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          id: input.userId,
+        },
+        include: { accounts: true },
+      });
+      const spotifyId = user!.accounts[0]!.providerAccountId;
+      const spotifyUser = await ctx.spotifySdk.users.profile(spotifyId);
+      console.log(spotifyUser);
+      return {
+        appData: {
+          name: user!.name,
+          bio: user?.bio,
+          imageUrl: user?.image,
+        },
+        spotifyData: {
+          name: spotifyUser.display_name,
+          externalLink: spotifyUser.external_urls.spotify,
+          imageUrl: spotifyUser.images[0]?.url,
+          followerCount: spotifyUser.followers.total,
+        },
+      };
+    }),
   getUserPlaylists: spotifyProcedure.query(async ({ ctx }) => {
     return ctx.spotifySdk.currentUser.playlists.playlists(50);
   }),
